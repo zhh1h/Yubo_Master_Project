@@ -1,0 +1,26 @@
+# PyCharm IDE相关的文件
+/.idea/
+*.iml
+*.ipr
+*.iws
+
+# 以zip结尾的文件
+*.zip
+
+# 以gz结尾的文件
+*.gz
+
+# 以tar结尾的文件
+*.tar
+
+# 以pickle结尾的文件
+*.pickle
+
+# 以tsv结尾的文件
+*.tsv
+
+*.jpg
+*.jpeg
+*.pth
+
+data

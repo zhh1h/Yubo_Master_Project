@@ -1,0 +1,13 @@
+{
+ "policy": "random",
+ "victim_model_dir": "models/victim/caltech256-resnet34-random-train",
+ "out_dir": "models/adversary/caltech256-resnet34-random",
+ "budget": 16000,
+ "queryset": "Caltech256",
+ "batch_size": 8,
+ "root": null,
+ "modelfamily": null,
+ "device_id": 2,
+ "nworkers": 10,
+ "created_on": "2023-03-27 22:04:28.352974"
+}

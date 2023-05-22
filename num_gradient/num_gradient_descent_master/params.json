@@ -1,0 +1,9 @@
+{
+ "input_pic": "./data/caltech256/256_ObjectCategories/056.dog/056_0001.jpg",
+ "target": "057.dolphin-101",
+ "lr": 0.01,
+ "resume": false,
+ "out_path": "./num_gradient_descent-master",
+ "device_id": 0,
+ "created_on": "2023-05-18 02:08:15.357557"
+}

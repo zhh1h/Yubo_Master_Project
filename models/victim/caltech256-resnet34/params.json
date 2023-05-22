@@ -1,0 +1,19 @@
+{
+ "dataset": "Caltech256",
+ "model_arch": "resnet34",
+ "out_path": "models/victim/caltech256-resnet34",
+ "device_id": 0,
+ "batch_size": 64,
+ "epochs": 100,
+ "lr": 0.1,
+ "momentum": 0.5,
+ "log_interval": 25,
+ "resume": null,
+ "lr_step": 30,
+ "lr_gamma": 0.1,
+ "num_workers": 10,
+ "pretrained": "imagenet",
+ "weighted_loss": null,
+ "num_classes": 256,
+ "created_on": "2019-07-08 23:32:46.640537"
+}

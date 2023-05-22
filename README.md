@@ -4,7 +4,8 @@
 
 **Max Planck Institute for Informatics**
 
-----
+---- 
+
 
 Machine Learning (ML) models are increasingly deployed in the wild to perform a wide range of tasks. 
 In this work, we ask to what extent can an adversary steal functionality of such "victim" models based solely on blackbox interactions: image in, predictions out.

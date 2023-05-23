@@ -4,9 +4,9 @@ from __future__ import print_function
 
 
 #from knockoff.models.cifar import vgg19
-import sys
-sys.path.append("/home/yubo/yubo_tem_code/knockoffnets/num_gradient/master_1/pytorch_cifar_master/")
-# from num_gradient.num_gradient_descent_master.
+#import sys
+#sys.path.append("/home/yubo/yubo_tem_code/knockoffnets/num_gradient/master_1/pytorch_cifar_master/")
+#from num_gradient.num_gradient_descent_master
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -17,6 +17,7 @@ import torchvision
 from torchvision.models import googlenet
 import torchvision.transforms as transforms
 import numpy as np
+from pytorch_cifar_master.models import VGG
 
 import os
 import argparse
@@ -88,7 +89,7 @@ net = torch.nn.DataParallel(net).cuda()
 	# Load checkpoint.
 print('==> Resuming from checkpoint..')
 #checkpoint = torch.load('./checkpoint_lenet/ckpt.t8', map_location=torch.device('cuda:0'))
-checkpoint = torch.load('../master_1/pytorch_cifar_master/checkpoint/ckpt.pth', map_location=torch.device('cuda:0'))
+checkpoint = torch.load('./pytorch_cifar_master/checkpoint/ckpt.pth', map_location=torch.device('cuda:0'))
 #checkpoint = torch.load('./checkpoint/ckpt_resnet18_rgb.t9', map_location=torch.device('cuda:0'))
 #checkpoint = torch.load('./checkpoint/ckpt_googlenet_rgb.t9', map_location=torch.device('cuda:0'))
 
@@ -226,8 +227,8 @@ if args.input_pic:
             f = create_f(h, w, classes.index(args.target))
 
             print(f(img_array))
-
             ngd.num_ascent(f, img_array)
+
 
 
 

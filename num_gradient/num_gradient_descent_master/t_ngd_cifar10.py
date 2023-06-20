@@ -28,8 +28,11 @@ from utils import progress_bar
 from PIL import Image
 
 import ngd_attacks as ngd
+#import pgd
 
 width, height = (32, 32)
+import torch.optim as optim
+
 
 
 parser = argparse.ArgumentParser(description='CIFAR10 Security Attacks')
@@ -40,8 +43,8 @@ args = parser.parse_args()
 
 
 transform_test = transforms.Compose([
-	transforms.ToTensor(),
-	transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
 
 
@@ -51,9 +54,9 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle=False, n
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
 transform_fn = transforms.Compose([
-	transforms.Resize(32),
-	transforms.CenterCrop(32),
-	transforms.ToTensor()])#,
+    transforms.Resize(32),
+    transforms.CenterCrop(32),
+    transforms.ToTensor()])#,
 #	transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
 #])
 #device='cuda:0'
@@ -86,7 +89,7 @@ if device == 'cuda':
 net = torch.nn.DataParallel(net).cuda()
 #cudnn.benchmark = True
 
-	# Load checkpoint.
+    # Load checkpoint.
 print('==> Resuming from checkpoint..')
 #checkpoint = torch.load('./checkpoint_lenet/ckpt.t8', map_location=torch.device('cuda:0'))
 checkpoint = torch.load('./pytorch_cifar_master/checkpoint/ckpt.pth', map_location=torch.device('cuda:0'))
@@ -108,30 +111,30 @@ criterion = nn.CrossEntropyLoss()
 
 
 def test():
-	net.eval()
-	test_loss = 0
-	correct = 0
-	total = 0
-	with torch.no_grad():
-		for batch_idx, (inputs, targets) in enumerate(testloader):
-			inputs, targets = inputs.to(device), targets.to(device)
-			outputs = net(inputs)
-			loss = criterion(outputs, targets)
+    net.eval()
+    test_loss = 0
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for batch_idx, (inputs, targets) in enumerate(testloader):
+            inputs, targets = inputs.to(device), targets.to(device)
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
 
-			test_loss += loss.item()
-			_, predicted = outputs.max(1)
-			#print("{} -- {}".format(targets, predicted))
-			total += targets.size(0)
-			correct += predicted.eq(targets).sum().item()
+            test_loss += loss.item()
+            _, predicted = outputs.max(1)
+            #print("{} -- {}".format(targets, predicted))
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
 
-			#progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-			#% (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+            #progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+            #% (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
 
 def save_img(img, count=None):
-	if count != None:
-		img = transforms.ToPILImage()(img)
-		img.save('output{}.jpg'.format(count))
+    if count != None:
+        img = transforms.ToPILImage()(img)
+        img.save('output{}.jpg'.format(count))
 
 
 
@@ -140,33 +143,36 @@ def save_img(img, count=None):
 
 #@profile
 def test_classifier(h, w, x):
-	#x *= 255
+    #x *= 255
     pixels = x.reshape((h, w, 3)).astype('uint8')
 
     img = Image.fromarray(pixels, mode='RGB')
     img = transform_fn(img)
     #print(img)
-    output = net(img.unsqueeze(dim=0))
-    output = F.softmax(output[0], dim=0)
+    output_1= net(img.unsqueeze(dim=0))
+    output = F.softmax(output_1[0], dim=0)
+    #output = F.cross_entropy(output_1[0],dim=0)
 
-    #print(output)
+
     save_img(img, count=0)
 
     value, index = torch.max(output, 0)
     #print([t for t in zip(output, classes)])
     print("{} -- {}".format(value, classes[index]))
+    print(f"output_1:{output_1}")
+    print(f"output:{output}")
     return index
 
 def save_transform(h, w, x, save_img=None):
-	#x *= 255
-	img = x.reshape((h, w, 3)).astype('uint8')
-	img = Image.fromarray(img, mode='RGB')
-	img.save('output.jpg')
-	if save_img != None:
-		img.save('imgs/output{}.jpg'.format(save_img))
-	img = Image.open('output.jpg')
-	img = transform_fn(img)
-	return img
+    #x *= 255
+    img = x.reshape((h, w, 3)).astype('uint8')
+    img = Image.fromarray(img, mode='RGB')
+    img.save('output.jpg')
+    if save_img != None:
+        img.save('imgs/output{}.jpg'.format(save_img))
+    img = Image.open('output.jpg')
+    img = transform_fn(img)
+    return img
 
 def create_f(h, w, target):
     def f(x, save_img=None, check_prediction=False):
@@ -181,18 +187,18 @@ def create_f(h, w, target):
             if predicted != target:
                 return 0
         return output[target].item()
-	#return lambda x: f(x, target)
+    #return lambda x: f(x, target)
     return f
 
 
 
 
 def linearize_pixels(img):
-	x = np.copy(np.asarray(img))
-	h, w, c = x.shape
-	img_array = x.reshape(h*w*c).astype('float64')
-	#img_array /= 255
-	return h, w, img_array
+    x = np.copy(np.asarray(img))
+    h, w, c = x.shape
+    img_array = x.reshape(h*w*c).astype('float64')
+    #img_array /= 255
+    return h, w, img_array
 
 
 
@@ -227,7 +233,17 @@ if args.input_pic:
             f = create_f(h, w, classes.index(args.target))
 
             print(f(img_array))
-            ngd.num_ascent(f, img_array)
+            #img_array = ngd.num_ascent_g(f, img_array)
+            while True:
+                #img_array = ngd.num_ascent(f, img_array)
+                #img_array = ngd.num_ascent_g(f, img_array)
+                img_array = ngd.ppgd(f, img_array)
+                index = test_classifier(h,w,img_array)
+                print(index)
+                if (test_classifier(h, w, img_array)) == classes.index(args.target):
+                    break
+                #return img_array
+            # #ngd.ppgd(f,img_array)
 
 
 

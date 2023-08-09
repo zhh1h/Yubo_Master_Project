@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="yubo@keb310-useast.xttech.top:7022 agent" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="yubo@keb310-useast.xttech.top:7022 agent">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/yubo/yubo_tem_code/knockoffnets" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/yubo/yubo_tem_code/knockoffnets/num_gradient/num_gradient_descent_master" local="$PROJECT_DIR$/num_gradient/num_gradient_descent_master" web="" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath path="/home/yubo/yubo_tem_code/knockoffnets/data" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>

@@ -113,42 +113,17 @@ def num_ascent_g(f, x):
 
 
 def ppgd(f,x):
-    epsilons = [ .5, .6, .7, .75, .8,]
+    epsilons = [ .3, .35, .4, .45, .5,]
     conf = f(x)
     print("Conf is {}".format(conf))
     count = 0
     #step = 2
     #grad = num_grad(f, x)
     for eps in epsilons:
-        # if eps < 0.6:
-        #     t = 3
-        #     step = 5
-        # elif eps == 0.2:
-        #     t = 3
-        #     step = 4
-        # elif eps >= 0.6 and eps < 0.75:
-        #     t = 3
-        #     step = 3
-        # elif eps >=0.75:
-        #     t =3
-        #     step = 2
-        # for i in range(step):
-        #     print("eps {}".format(eps))
-        #     print("t {}".format(t))
 
-                # if eps<=0.15:
-                # 	t = 5
-                # else:
-                # 	t = 3
             alpha = eps
-                #grad = ndGradient(f)(x)
-                #sign_data_grad = grad.sign()
             grad = num_grad(f, x)
             sign_data_grad = torch.sign(torch.from_numpy(grad))
-            # x += grad
-            #x += grad
-                #x = torch.from_numpy(x)
-                # grad = num_grad(f,x)
             x = torch.from_numpy(x)
             x = x + alpha * sign_data_grad
             x = x.detach().numpy()
@@ -165,6 +140,119 @@ def ppgd(f,x):
 
     return x
 
+
+
+def pgd_d(f, x, epsilons=0.4, alpha=0.01, num_steps=5):
+    x = torch.from_numpy(x)
+    conf = f(x)
+    x_original = x.clone()  # keep a copy of the original image
+    for i in range(num_steps):
+        grad = num_grad(f, x.numpy())  # calculate gradient using the function 'f' and numpy version of 'x'
+        sign_data_grad = torch.from_numpy(np.sign(grad).astype(np.float64))  # convert sign_data_grad to a tensor with same dtype as x
+        x = x + alpha * sign_data_grad
+
+        # Clip the perturbation to make sure the perturbed image is in the epsilon-ball
+        perturbation = torch.clamp(x - x_original, -epsilons, epsilons)
+        x = torch.clamp(x_original + perturbation, 0, 1)  # ensure the image is valid (0<=x<=1)
+
+        conf = f(x.detach().numpy())
+        print(f"Step: {i}, Confidence: {conf}")  # print the confidence at each step
+
+    conf = f(x.detach().numpy())
+
+    print(f"After {num_steps} steps, final Confidence: {conf}")  # print the final confidence after num_steps iterations
+    return x.detach().numpy() # return numpy version of 'x'
+
+
+def pgd_t(model, x, target_label, epsilons=[0.3, 0.4, 0.5, 0.6, 0.7]):
+    # Ensure computation is performed on the same device as the input model
+    device = next(model.parameters()).device
+
+    # Convert the image to PyTorch tensor and send to device
+    x = torch.from_numpy(x).float().to(device)
+    x = x.unsqueeze(0)  # add batch dimension
+
+    # Convert the target label to PyTorch tensor and send to device
+    target_label = torch.tensor([target_label], dtype=torch.long, device=device)
+
+    # Set requires_grad attribute of tensor. Important for Attack
+    x.requires_grad = True
+
+    for epsilon in epsilons:
+        # Forward pass
+        outputs = model(x)
+        loss = F.cross_entropy(outputs, target_label)
+
+        # Zero all existing gradients
+        model.zero_grad()
+
+        # Calculate gradients of model in backward pass
+        loss.backward()
+
+        # Collect datagrad
+        data_grad = x.grad.data
+
+        # Perform PGD
+        x = x + epsilon * torch.sign(data_grad)
+        x = x.detach().requires_grad_(True)
+
+    # Return the perturbed image
+    return x.detach().cpu().numpy().squeeze(0)
+
+
+def pppgd(f, x, num_steps=100, initial_alpha=0.5, momentum=0.9):
+    conf = f(x)
+    print("Initial confidence is {}".format(conf))
+    alpha = initial_alpha
+    grad = num_grad(f, x)
+    sign_data_grad = torch.sign(torch.from_numpy(grad))
+    update = torch.zeros_like(sign_data_grad)
+
+    for i in range(num_steps):
+        x = torch.from_numpy(x)
+        update = momentum * update + alpha * sign_data_grad
+        x = x + update
+        x = x.detach().numpy()
+        conf = f(x)
+        print("Step {}, confidence {}".format(i + 1, conf))
+        alpha *= 0.99  # learning rate decay
+
+    conf = f(x)
+    print("Final confidence is {}".format(conf))
+
+    return x
+
+
+def pgd(model, x, target_label_index, epsilons, alpha=0.01, num_steps=100, early_stopping=False):
+    x = torch.tensor(x, dtype=torch.float32, requires_grad=True)
+    target_label_index = torch.tensor(target_label_index)
+
+    momentum = 0
+    mu = 0.9  # momentum factor
+
+    for i in range(num_steps):
+        x.requires_grad_()
+
+        output = model(x.unsqueeze(0))
+        loss = -output[0, target_label_index]  # maximize the target class score
+        model.zero_grad()
+        loss.backward()
+
+        with torch.no_grad():
+            grad = x.grad
+            grad_sign = grad.sign()
+            grad_with_momentum = mu * momentum + grad_sign
+            x = x + alpha * grad_with_momentum
+            x = x.detach()
+
+        # Early stopping
+        if early_stopping:
+            output = model(x.unsqueeze(0))
+            _, predicted = output.max(1)
+            if predicted.cpu() == target_label_index:
+                break
+
+    return x.detach().cpu().numpy()
 
 
 

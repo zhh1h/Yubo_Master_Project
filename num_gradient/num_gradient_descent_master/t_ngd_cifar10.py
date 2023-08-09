@@ -1,47 +1,49 @@
 '''CIFAR10 Security POC
 Tiago Alves <tiago@ime.uerj.br>'''
 from __future__ import print_function
-
-
-#from knockoff.models.cifar import vgg19
+import time
+#
+#
+from knockoff.models.cifar import vgg19
 #import sys
 #sys.path.append("/home/yubo/yubo_tem_code/knockoffnets/num_gradient/master_1/pytorch_cifar_master/")
-#from num_gradient.num_gradient_descent_master
+# #from num_gradient.num_gradient_descent_master
+
 import torch
 import torch.nn as nn
-import torch.optim as optim
+#import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
-
+#
 import torchvision
 from torchvision.models import googlenet
 import torchvision.transforms as transforms
 import numpy as np
 from pytorch_cifar_master.models import VGG
-
+#
 import os
 import argparse
-
+#
 from models import *
 from utils import progress_bar
-
+#
 from PIL import Image
-
+#
 import ngd_attacks as ngd
 #import pgd
-
+#
 width, height = (32, 32)
 import torch.optim as optim
-
-
-
+#
+#
+#
 parser = argparse.ArgumentParser(description='CIFAR10 Security Attacks')
 parser.add_argument('--input-pic', '-i', type=str, help='Input image', required=False)
 parser.add_argument('--target', type=str, help='Target class', required=False)
 args = parser.parse_args()
-
-
-
+#
+#
+#
 transform_test = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
@@ -52,7 +54,7 @@ testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True
 testloader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle=False, num_workers=2)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-
+#
 transform_fn = transforms.Compose([
     transforms.Resize(32),
     transforms.CenterCrop(32),
@@ -67,10 +69,11 @@ device='cuda'
 # Model
 #print('==> Building model..')
 net = VGG('VGG19')
+#net = ResNet18()
 net = net.to(device)
 # fc_in_features = net.fc.in_features
 # net.fc = torch.nn.Linear(fc_in_features,10)
-#net = ResNet18()
+
 # net = PreActResNet18()
 #net = GoogLeNet()
 #net = googlenet(pretrained=True)
@@ -109,8 +112,10 @@ print('Resumed')
 
 criterion = nn.CrossEntropyLoss()
 
+net.eval()
 
-def test():
+
+def test(f=net):
     net.eval()
     test_loss = 0
     correct = 0
@@ -130,7 +135,7 @@ def test():
             #progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
             #% (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
-
+#
 def save_img(img, count=None):
     if count != None:
         img = transforms.ToPILImage()(img)
@@ -144,6 +149,7 @@ def save_img(img, count=None):
 #@profile
 def test_classifier(h, w, x):
     #x *= 255
+    #net.eval()
     pixels = x.reshape((h, w, 3)).astype('uint8')
 
     img = Image.fromarray(pixels, mode='RGB')
@@ -154,7 +160,7 @@ def test_classifier(h, w, x):
     #output = F.cross_entropy(output_1[0],dim=0)
 
 
-    save_img(img, count=0)
+    save_img(img, count=1)
 
     value, index = torch.max(output, 0)
     #print([t for t in zip(output, classes)])
@@ -165,7 +171,13 @@ def test_classifier(h, w, x):
 
 def save_transform(h, w, x, save_img=None):
     #x *= 255
-    img = x.reshape((h, w, 3)).astype('uint8')
+    #img = x.reshape((h, w, 3)).astype('uint8')
+    if isinstance(x, torch.Tensor):
+        img = x.to(torch.uint8).cpu().numpy().reshape((h, w, 3))
+    else:  # x is a numpy ndarray
+        img = x.reshape((h, w, 3)).astype(np.uint8)
+
+
     img = Image.fromarray(img, mode='RGB')
     img.save('output.jpg')
     if save_img != None:
@@ -176,6 +188,8 @@ def save_transform(h, w, x, save_img=None):
 
 def create_f(h, w, target):
     def f(x, save_img=None, check_prediction=False):
+        #net.eval()
+        #pixels = save_transform(h, w, x, save_img)
         pixels = save_transform(h, w, x, save_img)
         output = net(pixels.unsqueeze(dim=0))
 
@@ -189,6 +203,7 @@ def create_f(h, w, target):
         return output[target].item()
     #return lambda x: f(x, target)
     return f
+
 
 
 
@@ -218,29 +233,42 @@ def linearize_pixels(img):
 
 if args.input_pic:
         #print("There is input pic")
+        net.eval()
         img = Image.open(args.input_pic)
         h, w, img_array = linearize_pixels(img)
 
         #with torch.autograd.profiler.profile(use_cuda=True) as prof:
         #import pyprof
-        with torch.autograd.profiler.emit_nvtx():
-            net.eval()
-            test_classifier(h, w, img_array)
+        #with torch.autograd.profiler.emit_nvtx():
+            #net.eval()
+        test_classifier(h, w, img_array)
         #print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
         #print(prof)
 
         if args.target:
             f = create_f(h, w, classes.index(args.target))
 
-            print(f(img_array))
+            #print(f(img_array))
             #img_array = ngd.num_ascent_g(f, img_array)
+            start_time0 = time.time()
             while True:
+                start_time = time.time()
                 #img_array = ngd.num_ascent(f, img_array)
                 #img_array = ngd.num_ascent_g(f, img_array)
-                img_array = ngd.ppgd(f, img_array)
+                #img_array = ngd.ppgd(f, img_array)
+                img_array = ngd.pppgd(f, img_array,num_steps = 10)
+                #img_array = ngd.pgd_d(f, img_array, epsilons=0.3, alpha=0.01, num_steps=5)
                 index = test_classifier(h,w,img_array)
                 print(index)
+                step_time = time.time()
+                time_interval = step_time - start_time
+                print(f"gradient time: {time_interval} 秒")
                 if (test_classifier(h, w, img_array)) == classes.index(args.target):
+                    final_time= time.time()
+                    final_interval = final_time - start_time0
+                    print(f"final time interval: {final_interval} 秒")
+
+
                     break
                 #return img_array
             # #ngd.ppgd(f,img_array)
@@ -250,6 +278,46 @@ if args.input_pic:
 
 else:
         print("No input pic provided")
+
+
+#
+#
+# if args.input_pic:
+#     img = Image.open(args.input_pic)
+#     h, w, img_array = linearize_pixels(img)
+#
+#     # Test the classifier with the original image
+#     original_label = test_classifier(h, w, img_array)
+#
+#     if args.target:
+#         # Convert the target label name to its corresponding index
+#         target_label_index = classes.index(args.target)
+#         f = create_f(h, w, target_label_index)
+#
+#
+#         start_time_total = time.time()  # Start timing for total time
+#
+#         # Perform PGD attack
+#         while True:
+#             start_time_pgd = time.time()  # Start timing for PGD
+#             #img_array = img_array.reshape(1, 3, h, w)
+#             #img_array = img_array.squeeze(0)  # remove the first dimension
+#             img_array = ngd.pgd_d(f, img_array, epsilons=0.3, alpha=0.01, num_steps=100)
+#             perturbed_label = test_classifier(h, w, img_array)
+#             end_time_pgd = time.time()  # End timing for PGD
+#             print(f"Time elapsed for PGD: {end_time_pgd - start_time_pgd} seconds")
+#             #if perturbed_label == target_label_index:
+#             if perturbed_label == target_label_index:
+#
+#                 break
+#
+#         end_time_total = time.time()  # End timing for total time
+#         print(f"Total time elapsed: {end_time_total - start_time_total} seconds")
+#
+#         print(f"Original label: {classes[original_label]}, Perturbed label: {classes[perturbed_label]}")
+# else:
+#     print("No input pic provided")
+
 
 
 

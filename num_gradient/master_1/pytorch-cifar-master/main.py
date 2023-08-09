@@ -1,11 +1,11 @@
 '''Train CIFAR10 with PyTorch.'''
-import torch
+#import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torchvision.models as models
-# from knockoff.models.cifar import VGG
+from knockoff.models.cifar import VGG
 
 import torchvision
 from torchvision.models import googlenet
@@ -20,7 +20,7 @@ from models import *
 
 
 parser = argparse.ArgumentParser(description='PyTorch CIFAR10 Training')
-parser.add_argument('--lr', default=0.1, type=float, help='learning rate')
+parser.add_argument('--lr', default=1e-2, type=float, help='learning rate')
 parser.add_argument('--resume', '-r', action='store_true',
                     help='resume from checkpoint')
 args = parser.parse_args()
@@ -58,8 +58,9 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 
 # Model
 print('==> Building model..')
-net = ResNet34()
-# net = ResNet18()
+#net = ResNet34()
+net = VGG('VGG19')
+#net = ResNet18()
 # net = PreActResNet18()
 #net = googlenet(pretrained = True)
 # net = DenseNet121()
@@ -115,6 +116,9 @@ def train(epoch):
         correct += predicted.eq(targets).sum().item()
 
         print('Train: Loss: %.3f | Accuracy: %.3f%% (%d/%d)' % (train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+        with open('train_log.txt', 'a') as f:
+            f.write('Epoch: %d | Train: Loss: %.3f | Accuracy: %.3f%% (%d/%d)\n' % (
+            epoch, train_loss / (batch_idx + 1), 100. * correct / total, correct, total))
 
 
 def test(epoch):
@@ -135,6 +139,9 @@ def test(epoch):
             correct += predicted.eq(targets).sum().item()
             print('Test: Loss: %.3f | Accuracy: %.3f%% (%d/%d)' % (
             test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
+            with open('test_log.txt', 'a') as f:
+                f.write('Epoch: %d | Test: Loss: %.3f | Accuracy: %.3f%% (%d/%d)\n' % (
+                    epoch, test_loss / (batch_idx + 1), 100. * correct / total, correct, total))
             # progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
             #              % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
 
@@ -153,7 +160,7 @@ def test(epoch):
         best_acc = acc
 
 
-for epoch in range(start_epoch, start_epoch+50):
+for epoch in range(start_epoch, start_epoch+200):
     train(epoch)
     test(epoch)
     scheduler.step()

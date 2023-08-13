@@ -95,7 +95,7 @@ net = torch.nn.DataParallel(net).cuda()
     # Load checkpoint.
 print('==> Resuming from checkpoint..')
 #checkpoint = torch.load('./checkpoint_lenet/ckpt.t8', map_location=torch.device('cuda:0'))
-checkpoint = torch.load('./pytorch_cifar_master/checkpoint/ckpt.pth', map_location=torch.device('cuda:0'))
+checkpoint = torch.load('./checkpoint/ckpt.pth', map_location=torch.device('cuda:0'))
 #checkpoint = torch.load('./checkpoint/ckpt_resnet18_rgb.t9', map_location=torch.device('cuda:0'))
 #checkpoint = torch.load('./checkpoint/ckpt_googlenet_rgb.t9', map_location=torch.device('cuda:0'))
 

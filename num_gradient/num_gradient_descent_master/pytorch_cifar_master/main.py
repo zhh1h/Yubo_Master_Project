@@ -59,7 +59,7 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer',
 # Model
 print('==> Building model..')
 net = VGG('VGG19')
-# net = ResNet18()
+#net = ResNet18()
 # net = PreActResNet18()
 #net = googlenet(pretrained = True)
 # net = DenseNet121()
@@ -77,7 +77,7 @@ net = VGG('VGG19')
 net = net.to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
-    cudnn.benchmark = True
+    cudnn.benchmark = False
 
 if args.resume:
     # Load checkpoint.

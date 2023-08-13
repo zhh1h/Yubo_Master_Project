@@ -3,7 +3,7 @@
 # Tiago Alves <tiago@ime.uerj.br>
 
 import numpy as np
-from numdifftools import Gradient as ndGradient
+#from numdifftools import conda as ndGradient
 import random
 import scipy.stats as stats
 import torch

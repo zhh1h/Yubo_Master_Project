@@ -1,8 +1,8 @@
-## PyCharm IDE相关的文件
-#/.idea/
-#*.iml
-#*.ipr
-#*.iws
+# PyCharm IDE相关的文件
+/.idea/
+*.iml
+*.ipr
+*.iws
 
 # 以zip结尾的文件
 *.zip

@@ -54,10 +54,11 @@ def calculate_f_scores_in_folder(folder_path, target_class=None,threshold = 0.5)
         h, w, img_array = linearize_pixels(img)
 
         if target_class is not None:
-            f = create_f(h, w, target_class)
+            f_function = create_f(h, w, target_class)
+            f_score = f_function(img_array)
             print(f"Image {filename}: f score {f}")
 
-            if f > threshold:
+            if f_score > threshold:
                 selected_images.append((index,filename,f))
 
     return selected_images

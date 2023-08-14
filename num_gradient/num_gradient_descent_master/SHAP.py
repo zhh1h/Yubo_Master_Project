@@ -59,11 +59,12 @@ def calculate_f_scores_in_folder(folder_path, target_class=None,threshold = 0.5)
         image_path = os.path.join(folder_path, filename)
         img = Image.open(image_path)
         h, w, img_array = linearize_pixels(img)
+        identified_class = test_classifier(h, w, img_array)
 
         if target_class is not None:
             f_function = create_f(h, w, target_class)
             f_score = f_function(img_array)
-            print(f"Image {filename}: f score {f_score}")
+            print(f"Image {filename}: f score {f_score}, class is {identified_class}")
 
             if f_score > threshold:
                 selected_images.append((index,filename,f_score))

@@ -64,7 +64,7 @@ def calculate_f_scores_in_folder(folder_path, target_class=None,threshold = 0.5)
         if target_class is not None:
             f_function = create_f(h, w, target_class)
             f_score = f_function(img_array)
-            print(f"Image {filename}: f score {f_score}, class is {identified_class}")
+            print(f"Image {filename}: f score {f_score}, class is {classes[identified_class]}")
 
             if f_score > threshold:
                 selected_images.append((index,filename,f_score))

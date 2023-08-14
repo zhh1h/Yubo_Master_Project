@@ -27,6 +27,13 @@ def generate_and_save_images(num_images, folder_path):
 
     for idx in range(num_images):
         img = generate_random_image(idx)
+
+        #Convert image pixel values to tuple of tuples format
+        pixel_tuples = tuple(tuple(map(int, img[i, j] * 255)) for i in range(32) for j in range(32))
+
+        # Print the pixel values of the generated image with its index
+        print(f"Image {idx+1} Pixels: {pixel_tuples}")
+
         img_pil = Image.fromarray((img * 255).astype(np.uint8))
         img_filename = f"random_image_seed_{idx}.jpg"
         img_path = os.path.join(folder_path, img_filename)

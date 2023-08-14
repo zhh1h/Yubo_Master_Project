@@ -62,7 +62,9 @@ def calculate_f_scores_in_folder(folder_path, target_class=None,threshold = 0.5)
 
     return selected_images
 
-folder_path = "./shap_random_images"
+#folder_path = "./shap_random_images"
+folder_path = os.path.join(os.path.dirname(__file__), "shap_random_images")
+
 
 selected_images = calculate_f_scores_in_folder(folder_path, target_class=classes.index(args.target),threshold = 0.5)
 

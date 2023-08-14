@@ -45,6 +45,7 @@ def display_images_in_folder(folder_path):
 
 
 def calculate_f_scores_in_folder(folder_path, target_class=None,threshold = 0.5):
+    selected_images = []
     image_filenames = sorted(os.listdir(folder_path))
 
     for index, filename in enumerate(image_filenames):
@@ -61,7 +62,8 @@ def calculate_f_scores_in_folder(folder_path, target_class=None,threshold = 0.5)
 
     return selected_images
 
-folder_path = "shap_random_images"
+folder_path = "./shap_random_images"
+
 selected_images = calculate_f_scores_in_folder(folder_path, target_class=classes.index(args.target),threshold = 0.5)
 
 #输出筛选结果

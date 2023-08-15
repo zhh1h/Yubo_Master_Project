@@ -86,7 +86,7 @@ def compute_shap_values(model, background, input_data):
     #print(input_data.shape)  # 应该打印出 [1, channels, height, width]
     return shap_values
 
-def adjust_image_based_on_shap(original_img, shap_values, target_class_index, intensity=0.1):
+def adjust_image_based_on_shap(original_img, shap_values, target_class_index, intensity=0.5):
     # reshape the original_img to (3,32,32)
     reshaped_img = original_img.reshape(3, 32, 32)
     shap_for_target = shap_values[target_class_index]

@@ -27,13 +27,9 @@ def load_images_from_folder(folder_path_background):
         img_path = os.path.join(folder_path_background, img_file)
         img = Image.open(img_path)
         h, w, img_array = linearize_pixels(img)
-
-        # Ensure the array is linear and has the right number of elements
-        assert len(img_array) == 3 * h * w, "Image array doesn't have the right number of elements"
-
-        img_tensor = torch.Tensor(img_array).view(3, h, w).cuda()
+        img_tensor = torch.Tensor(img_array).view(1,3,32,32).cuda()
         images.append(img_tensor)
-    return images
+    return torch.cat(images,0)
 
 
 folder_path_background = './data/airplane'
@@ -103,7 +99,7 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
         img = Image.open(image_path)
         h, w, img_array = linearize_pixels(img)
         identified_class = test_classifier(h, w, img_array)
-        img_tensor = torch.Tensor(img_array)
+        img_tensor = torch.Tensor(img_array).view(1,3,32,32).cuda()
 
         if target_class is not None:
             f_function = create_f(h, w, target_class)
@@ -142,7 +138,7 @@ selected_images = calculate_f_scores_in_folder_with_shap(folder_path, target_cla
 #输出筛选结果
 print("Selected images:")
 for index,filename,f_score in selected_images:
-    print(f"Original Index:{index},Image:{filename},f Score:{f_score}")
+    print(f"Original Index:{index},Image:{filename},f Score:{f_score_after}")
 
 
 

@@ -26,7 +26,7 @@ def load_images_from_folder(folder_path_background):
         images.append(torch.Tensor(img_array))
     return images
 
-folder_path_background = './airplane'
+folder_path_background = './data//airplane'
 background = torch.stack(load_images_from_folder(folder_path_background))
 
 def generate_random_image(seed, shape=(32, 32, 3)):

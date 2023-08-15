@@ -125,6 +125,11 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
 
     return selected_images
 
+###
+print(background.shape)   # 应该打印出 [num_images, channels, height, width]
+print(input_data.shape)   # 应该打印出 [1, channels, height, width]
+
+
 #folder_path = "./shap_random_images"
 folder_path = os.path.join(os.path.dirname(__file__), "shap_random_images")
 

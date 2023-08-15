@@ -19,17 +19,22 @@ args = parser.parse_args()
 
 net = net.cuda()
 
+
 def load_images_from_folder(folder_path_background):
     image_files = sorted(os.listdir(folder_path_background))
     images = []
     for img_file in image_files:
-        img_path = os.path.join(folder_path_background,img_file)
+        img_path = os.path.join(folder_path_background, img_file)
         img = Image.open(img_path)
-        h,w,img_array = linearize_pixels(img)
-        img_tensor = torch.Tensor(img_array).view(3,h,w)
-        img_tensor = img_tensor.cuda()
+        h, w, img_array = linearize_pixels(img)
+
+        # Ensure the array is linear and has the right number of elements
+        assert len(img_array) == 3 * h * w, "Image array doesn't have the right number of elements"
+
+        img_tensor = torch.Tensor(img_array).view(3, h, w).cuda()
         images.append(img_tensor)
     return images
+
 
 folder_path_background = './data/airplane'
 background = torch.stack(load_images_from_folder(folder_path_background))

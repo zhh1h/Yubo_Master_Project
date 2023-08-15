@@ -143,7 +143,7 @@ selected_images = calculate_f_scores_in_folder_with_shap(folder_path, target_cla
 
 #输出筛选结果
 print("Selected images:")
-for index,filename,f_score in selected_images:
+for index,filename,f_score_after in selected_images:
     print(f"Original Index:{index},Image:{filename},f Score:{f_score_after}")
 
 

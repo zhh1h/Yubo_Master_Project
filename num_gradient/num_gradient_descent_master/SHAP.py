@@ -81,9 +81,11 @@ def display_images_in_folder(folder_path):
 
 
 def compute_shap_values(model, background, input_data):
+    print(f"background's shape{background.shape}")
+    print(f"input_data's shape{input_data.shape}")
     explainer = shap.DeepExplainer(model, background)
     shap_values = explainer.shap_values(input_data)
-    print(input_data.shape)  # 应该打印出 [1, channels, height, width]
+    #print(input_data.shape)  # 应该打印出 [1, channels, height, width]
     return shap_values
 
 def adjust_image_based_on_shap(original_img, shap_values, target_class_index, intensity=0.1):
@@ -126,8 +128,6 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
 
     return selected_images
 
-###
-print(background.shape)   # 应该打印出 [num_images, channels, height, width]
 
 
 

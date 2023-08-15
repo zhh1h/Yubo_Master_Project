@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser(description='SHAP')
 parser.add_argument('--target', type=str, help='Target class', required=False)
 args = parser.parse_args()
 
-def load_images_from_folder(folder_path_background,num_images):
+def load_images_from_folder(folder_path_background):
     image_files = sorted(os.listdir(folder_path))
     images = []
     for img_file in image_files:

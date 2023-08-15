@@ -35,6 +35,8 @@ def load_images_from_folder(folder_path_background):
 folder_path_background = './data/airplane'
 background = load_images_from_folder(folder_path_background)
 background = background.cuda()
+# 打印background的形状
+print("Shape of background:", background.shape)
 
 def generate_random_image(seed, shape=(32, 32, 3)):
     np.random.seed(seed)
@@ -100,6 +102,8 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
         h, w, img_array = linearize_pixels(img)
         identified_class = test_classifier(h, w, img_array)
         img_tensor = torch.Tensor(img_array).view(1,3,32,32).cuda()
+        # 打印img_tensor增加维度后的形状
+        print("Shape of img_tensor after unsqueeze:", img_tensor.unsqueeze(0).shape)
 
         if target_class is not None:
             f_function = create_f(h, w, target_class)

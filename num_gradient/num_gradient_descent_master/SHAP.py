@@ -79,8 +79,8 @@ def display_images_in_folder(folder_path):
 
 
 def compute_shap_values(model, background, input_data):
-    print(f"background's shape{background.shape}")
-    print(f"input_data's shape{input_data.shape}")
+    #print(f"background's shape{background.shape}")
+    #print(f"input_data's shape{input_data.shape}")
     explainer = shap.DeepExplainer(model, background)
     shap_values = explainer.shap_values(input_data)
     #print(input_data.shape)  # 应该打印出 [1, channels, height, width]
@@ -123,10 +123,10 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
         if target_class is not None:
             f_function_after = create_f(h, w, target_class)
             f_score_after = f_function_after(adjusted_img_array)
-            print(f"Image {filename}: f score {f_score_after}, class is {identified_class}")
+            print(f"Image {filename}: f score {f_score_after}, class is {classes[identified_class]}")
 
-            if f_score_after > threshold:
-                selected_images.append((index,filename,f_score_after))
+        if f_score_after > threshold:
+            selected_images.append((index,filename,f_score_after))
 
     return selected_images
 

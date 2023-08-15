@@ -17,7 +17,7 @@ parser.add_argument('--target', type=str, help='Target class', required=False)
 args = parser.parse_args()
 
 def load_images_from_folder(folder_path_background):
-    image_files = sorted(os.listdir(folder_path))
+    image_files = sorted(os.listdir(folder_path_background))
     images = []
     for img_file in image_files:
         img_path = os.path.join(folder_path,img_file)

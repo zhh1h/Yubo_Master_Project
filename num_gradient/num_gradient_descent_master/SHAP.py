@@ -127,7 +127,7 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
 
 ###
 print(background.shape)   # 应该打印出 [num_images, channels, height, width]
-print(input_data.shape)   # 应该打印出 [1, channels, height, width]
+print(img_tensor.unsqueeze(0).shape)   # 应该打印出 [1, channels, height, width]
 
 
 #folder_path = "./shap_random_images"

@@ -115,7 +115,7 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
         #using model to calculate shap values:
         shap_values = compute_shap_values(net,background,img_tensor.unsqueeze(0))
 
-        print(f"SHAP values for Image {filename}: {shap_values}")
+        #print(f"SHAP values for Image {filename}: {shap_values}")
 
         # adjust image based on shap values
         adjusted_img_array = adjust_image_based_on_shap(img_array,shap_values,target_class)

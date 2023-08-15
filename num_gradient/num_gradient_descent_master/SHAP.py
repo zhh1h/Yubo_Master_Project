@@ -110,7 +110,7 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
         if target_class is not None:
             f_function = create_f(h, w, target_class)
             f_score = f_function(img_array)
-            print(f"Image {filename}: f score on target class{classes.index(args.target)} is {f_score}, class is {classes[identified_class]}")
+            print(f"Image {filename}: f score on target class{classes.index(args.target)} is {f_score}, now class is {identified_class}{classes[identified_class]}")
 
         #using model to calculate shap values:
         shap_values = compute_shap_values(net,background,img_tensor.unsqueeze(0))
@@ -123,7 +123,7 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
         if target_class is not None:
             f_function_after = create_f(h, w, target_class)
             f_score_after = f_function_after(adjusted_img_array)
-            print(f"Image {filename}: f_score_after on target class{classes.index(args.target)} is {f_score_after}, class is {classes[identified_class]}")
+            print(f"Image {filename}: f_score_after on target class{classes.index(args.target)} is {f_score_after},  now class is {identified_class}{classes[identified_class]}")
 
         if f_score_after > threshold:
             selected_images.append((index,filename,f_score_after))

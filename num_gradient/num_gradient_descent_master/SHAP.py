@@ -121,7 +121,7 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
             f_score_after = f_function_after(adjusted_img_array)
             print(f"Image {filename}: f score {f_score_after}, class is {identified_class}")
 
-            if f_score > threshold:
+            if f_score_after > threshold:
                 selected_images.append((index,filename,f_score_after))
 
     return selected_images

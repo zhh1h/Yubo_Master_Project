@@ -90,7 +90,7 @@ def adjust_image_based_on_shap(original_img, shap_values, target_class_index, in
     # reshape the original_img to (3,32,32)
     reshaped_img = original_img.reshape(3, 32, 32)
     shap_for_target = shap_values[target_class_index]
-    adjusted_img = oreshaped_img + intensity * shap_for_target
+    adjusted_img = reshaped_img + intensity * shap_for_target
     return adjusted_img
 
 

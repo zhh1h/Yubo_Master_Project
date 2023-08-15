@@ -83,6 +83,7 @@ def display_images_in_folder(folder_path):
 def compute_shap_values(model, background, input_data):
     explainer = shap.DeepExplainer(model, background)
     shap_values = explainer.shap_values(input_data)
+    print(input_data.shape)  # 应该打印出 [1, channels, height, width]
     return shap_values
 
 def adjust_image_based_on_shap(original_img, shap_values, target_class_index, intensity=0.1):
@@ -127,7 +128,7 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
 
 ###
 print(background.shape)   # 应该打印出 [num_images, channels, height, width]
-print(img_tensor.unsqueeze(0).shape)   # 应该打印出 [1, channels, height, width]
+
 
 
 #folder_path = "./shap_random_images"

@@ -20,7 +20,7 @@ def load_images_from_folder(folder_path_background):
     image_files = sorted(os.listdir(folder_path_background))
     images = []
     for img_file in image_files:
-        img_path = os.path.join(folder_path,img_file)
+        img_path = os.path.join(folder_path_background,img_file)
         img = Image.open(img_path)
         h,w,img_array = linearize_pixels(img)
         images.append(torch.Tensor(img_array))

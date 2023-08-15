@@ -11,6 +11,7 @@ import argparse
 import shap
 import torch
 
+net = net.cuda()
 parser = argparse.ArgumentParser(description='SHAP')
 
 parser.add_argument('--target', type=str, help='Target class', required=False)

@@ -33,7 +33,7 @@ def load_images_from_folder(folder_path_background):
 
 
 folder_path_background = './data/airplane'
-background = torch.stack(load_images_from_folder(folder_path_background))
+background = load_images_from_folder(folder_path_background)
 background = background.cuda()
 
 def generate_random_image(seed, shape=(32, 32, 3)):

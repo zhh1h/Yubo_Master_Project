@@ -94,7 +94,7 @@ def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,thresh
         if target_class is not None:
             f_function = create_f(h, w, target_class)
             f_score = f_function(img_array)
-            print(f"Image {filename}: f score {f_score}, class is {identified_class}")
+            print(f"Image {filename}: f score {f_score}, class is {classes[identified_class]}")
 
         #using model to calculate shap values:
         shap_values = compute_shap_values(net,background,img_tensor.unsqueeze(0))

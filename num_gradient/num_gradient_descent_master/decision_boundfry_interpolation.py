@@ -7,6 +7,18 @@ import matplotlib.pyplot as plt
 airplane_sample = Image.open('./data/cifar_pictures/NO.10class0airplane.jpg')  # 这里需要替换为实际的路径
 cat_sample = Image.open('./data/cifar_pictures/NO.0class3cat.jpg')  # 同样需要替换为实际的路径
 
+
+# 显示并分类代表性样本
+def display_and_classify(sample, label):
+    h, w, img_array = linearize_pixels(sample)
+    identified_class = test_classifier(h, w, img_array)
+    plt.imshow(sample)
+    plt.title(f"{label} Representative Sample, Classified as: {identified_class}")
+    plt.show()
+
+display_and_classify(airplane_sample, "Airplane")
+display_and_classify(cat_sample, "Cat")
+
 # 将这些样本转化为numpy数组
 airplane_array = np.array(airplane_sample)
 cat_array = np.array(cat_sample)

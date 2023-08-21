@@ -17,7 +17,7 @@ def display_and_classify(sample, label):
     plt.show()
 
 display_and_classify(deer_sample, "deer")
-display_and_classify(ship_sample, "Cat")
+display_and_classify(ship_sample, "ship")
 
 # 将这些样本转化为numpy数组
 deer_array = np.array(deer_sample)

@@ -4,8 +4,8 @@ from t_ngd_cifar10 import test_classifier, linearize_pixels
 import matplotlib.pyplot as plt
 
 # 选择两个类别的代表性样本
-airplane_sample = Image.open('./data/cifar_pictures/N0.10class0airplane.jpg')  # 这里需要替换为实际的路径
-cat_sample = Image.open('./data/cifar_pictures/N0.8class3cat.jpg')  # 同样需要替换为实际的路径
+airplane_sample = Image.open('./data/cifar_pictures/NO.10class0airplane.jpg')  # 这里需要替换为实际的路径
+cat_sample = Image.open('./data/cifar_pictures/NO.0class3cat.jpg')  # 同样需要替换为实际的路径
 
 # 将这些样本转化为numpy数组
 airplane_array = np.array(airplane_sample)

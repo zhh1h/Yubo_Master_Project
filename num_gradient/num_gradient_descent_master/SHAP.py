@@ -173,7 +173,7 @@ save_generated_images(avg_shap_values, 10, folder_path)
 
 # 如果有指定目标类别，则使用它，否则默认为0
 target_class = classes.index(args.target) if args.target else 0
-selected_images = calculate_f_scores_in_folder(folder_path, target_class=target_class, threshold=0.5)
+selected_images = calculate_f_scores_in_folder_with_shap(folder_path, target_class=target_class, threshold=0.5)
 
 # 输出筛选结果
 print("Selected images:")

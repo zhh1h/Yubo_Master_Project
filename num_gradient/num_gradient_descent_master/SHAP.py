@@ -59,11 +59,11 @@ def generate_image_based_on_shap(shap_values,seed,shap = (3,32,32)):
     return image
 
 def save_generated_images(shap_values,num_images,folder_path):
-    if not os.path.exits(folder_path):
+    if not os.path.exists(folder_path):
         os.makedirs(folder_path)
     for idx in range(num_images):
         random_image = generate_image_based_on_shap(shap_values,idx)
-        img_pil = Image.fromarry(random_image.astype(np.unit8))
+        img_pil = Image.fromarray(random_image.astype(np.unit8))
         img_filename = f'random_image_seed{idx}.jpg'
         img_path = os.path.join(folder_path,img_filename)
         img_pil.save(img_path)
@@ -122,7 +122,7 @@ def save_generated_images(shap_values,num_images,folder_path):
 #     return adjusted_img
 
 
-def calculate_f_scores_in_folder_with_shap(folder_path, target_class=None,threshold = 0.5):
+def calculate_f_scores_in_folder(folder_path, target_class=None,threshold = 0.5):
     selected_images = []
     image_filenames = sorted(os.listdir(folder_path))
 
@@ -173,7 +173,7 @@ save_generated_images(avg_shap_values, 10, folder_path)
 
 # 如果有指定目标类别，则使用它，否则默认为0
 target_class = classes.index(args.target) if args.target else 0
-selected_images = calculate_f_scores_in_folder_with_shap(folder_path, target_class=target_class, threshold=0.5)
+selected_images = calculate_f_scores_in_folder(folder_path, target_class=target_class, threshold=0.5)
 
 # 输出筛选结果
 print("Selected images:")

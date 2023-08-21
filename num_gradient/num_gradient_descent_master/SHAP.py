@@ -179,3 +179,4 @@ selected_images = calculate_f_scores_in_folder(folder_path, target_class=target_
 print("Selected images:")
 for index, filename, f_score in selected_images:
     print(f"Original Index: {index}, Image: {filename}, f Score: {f_score}")
+    ######

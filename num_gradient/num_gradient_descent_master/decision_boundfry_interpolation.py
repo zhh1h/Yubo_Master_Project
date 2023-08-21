@@ -24,7 +24,7 @@ frog_sample = np.array(frog_sample)
 ship_array = np.array(ship_sample)
 
 # 在这两个样本之间进行线性插值
-steps = 10  # 您可以更改此值以获取更多或更少的插值步骤
+steps = 20  # 您可以更改此值以获取更多或更少的插值步骤
 alpha_values = np.linspace(0, 1, steps)
 interpolated_samples = [(1 - alpha) * frog_sample + alpha * ship_array for alpha in alpha_values]
 

@@ -54,7 +54,8 @@ def compute_shap_values_for_background(model,background):
 def generate_image_based_on_shap(shap_values,seed,shap = (3,32,32)):
     np.random.seed(seed)
     random_multiplier = np.random.rand(*shap)
-    image = random_multiplier * shap_values
+    average_shap_values = np.mean(shap_values,axis = 1)
+    image = random_multiplier * average_shap_values
     image = np.clip(image,0,255)
     return image
 
@@ -62,8 +63,9 @@ def save_generated_images(shap_values,num_images,folder_path):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
     for idx in range(num_images):
-        random_image = generate_image_based_on_shap(shap_values,idx)
-        img_pil = Image.fromarray(random_image.astype(np.uint8))
+        #random_image = generate_image_based_on_shap(shap_values,idx)
+        img_array = generate_image_based_on_shap(shap_values,idx).transpose(1,2,0)
+        img_pil = Image.fromarray(img_array.astype(np.uint8))
         img_filename = f'random_image_seed{idx}.jpg'
         img_path = os.path.join(folder_path,img_filename)
         img_pil.save(img_path)

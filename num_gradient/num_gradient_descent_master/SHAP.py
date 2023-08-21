@@ -63,7 +63,7 @@ def save_generated_images(shap_values,num_images,folder_path):
         os.makedirs(folder_path)
     for idx in range(num_images):
         random_image = generate_image_based_on_shap(shap_values,idx)
-        img_pil = Image.fromarray(random_image.astype(np.unit8))
+        img_pil = Image.fromarray(random_image.astype(np.uint8))
         img_filename = f'random_image_seed{idx}.jpg'
         img_path = os.path.join(folder_path,img_filename)
         img_pil.save(img_path)

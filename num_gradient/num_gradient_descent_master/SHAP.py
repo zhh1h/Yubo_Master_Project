@@ -54,7 +54,7 @@ def compute_shap_values_for_background(model,background):
 def generate_image_based_on_shap(shap_values,seed,shap = (3,32,32)):
     np.random.seed(seed)
     random_multiplier = np.random.rand(*shap)
-    average_shap_values = np.mean(shap_values,axis = 1)
+    average_shap_values = np.mean(shap_values,axis = (0,1))
     image = random_multiplier * average_shap_values
     image = np.clip(image,0,255)
     return image

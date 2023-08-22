@@ -1,7 +1,10 @@
 import numpy as np
 from PIL import Image
 from t_ngd_cifar10 import test_classifier, linearize_pixels
+from t_ngd_cifar10 import create_f
+from ngd_attacks import num_grad
 import matplotlib.pyplot as plt
+import torch
 
 
 def generate_random_noise(shape, intensity=0.05):
@@ -15,6 +18,69 @@ def generate_random_image(base_image, alpha_shift, noise_intensity=0.05):
     random_image = interpolated_image + random_noise
     return np.clip(random_image, 0, 255)
 
+
+def pppgd_improved(f, x, num_steps=100, initial_step_size=0.5, momentum=0.9, target_confidence=0.5):
+    conf = f(x)
+    print("Initial confidence is {}".format(conf))
+
+    if conf >= target_confidence:
+        print("Image already has confidence >= target confidence")
+        return x
+
+    step_size = initial_step_size
+    grad = num_grad(f, x)  # Ensure that num_grad function returns the gradient with respect to the confidence score
+    sign_data_grad = torch.sign(torch.from_numpy(grad))
+    update = torch.zeros_like(sign_data_grad)
+
+    for i in range(num_steps):
+        x = torch.from_numpy(x)
+        update = momentum * update + step_size * sign_data_grad
+        x = x + update
+        x = x.detach().numpy()
+        conf = f(x)
+        print("Step {}, confidence {}".format(i + 1, conf))
+
+        if conf >= target_confidence:
+            print("Reached target confidence!")
+            break
+
+        step_size *= 0.99  # learning rate decay
+
+    conf = f(x)
+    print("Final confidence is {}".format(conf))
+
+    return x
+
+
+# Note: Ensure that the 'f' function returns the confidence score of the image being in the desired class.
+# The 'num_grad' function should compute the gradient of this confidence score with respect to the image.
+
+def optimize_confidence_to_target(image, target_class, num_steps=100, initial_step_size=0.5, momentum=0.9,
+                                  target_confidence=0.5):
+    """
+    Optimize the confidence of an image to be closer to a target class.
+
+    Args:
+    - image: The image to optimize.
+    - target_class: The class we want to move the image's confidence towards.
+    - num_steps, initial_step_size, momentum, target_confidence: Parameters for the PGD method.
+
+    Returns:
+    - Optimized image.
+    """
+    h, w, _ = image.shape
+    f_target = create_f(h, w, target_class)
+
+    optimized_image = pppgd_improved(f_target, image, num_steps=num_steps,
+                                     initial_step_size=initial_step_size, momentum=momentum,
+                                     target_confidence=target_confidence)
+    return optimized_image
+
+
+# Now, you can call this function for each side of the decision boundary.
+# For example:
+# optimized_image_1 = optimize_confidence_to_target(random_image_1, target_class=class_of_representative_sample_1)
+# optimized_image_2 = optimize_confidence_to_target(random_image_2, target_class=class_of_representative_sample_2)
 
 # Choosing representative samples for two classes
 frog_sample = Image.open('./data/cifar_pictures/NO.1class6frog.jpg')
@@ -77,3 +143,12 @@ if boundary_alpha is not None:
     print(f"Random image from side 2 is classified as: {class_2}")
 else:
     print("No decision boundary found.")
+
+
+optimized_image_1 = optimize_confidence_to_target(random_image_side_1, target_class=frog_sample)
+h, w, img_array_1 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_1)))
+test_classifier(h,w,img_array_1)
+
+optimized_image_2 = optimize_confidence_to_target(random_image_side_2, target_class=ship_sample)
+h, w, img_array_2 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_2)))
+test_classifier(h,w,img_array_2)

@@ -36,17 +36,25 @@ def f_noise(f, x):
     return dist
 
 def num_grad(f, x):
-        delta = 20
-        grad = np.zeros(len(x))
-        a = np.copy(x)
-        # print len(x)
-        for i in range(len(x)):
-            a[i] = x[i] + delta
-            grad[i] = (f(a) - f(x)) / delta
-            a[i] -= delta
+    delta = 20
+    grad = np.zeros_like(x)  # Match the shape of x
+    perturbed_x = np.copy(x)
 
-        return grad
+    it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    while not it.finished:
+        ix = it.multi_index
+        original_value = x[ix]
 
+        # Perturb the current element of x
+        perturbed_x[ix] = original_value + delta
+        grad[ix] = (f(perturbed_x) - f(x)) / delta
+
+        # Reset the perturbed value
+        perturbed_x[ix] = original_value
+
+        it.iternext()
+
+    return grad
 
 def grad_ascent(f, x):
         #print x

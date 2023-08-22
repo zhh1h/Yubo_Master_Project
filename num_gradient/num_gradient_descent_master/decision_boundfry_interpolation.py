@@ -6,6 +6,26 @@ from ngd_attacks import num_grad
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import torch
+import os
+
+
+# 保存图像的函数
+def save_image(image_array, filename):
+    # 确保目标文件夹存在
+    directory = "./data/boundary_pictures"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    # 使用PIL保存numpy数组为图像
+    img = Image.fromarray(np.uint8(image_array))
+    img.save(os.path.join(directory, filename))
+
+def display_image(image_array, title=""):
+    plt.imshow(np.uint8(image_array))
+    plt.title(title)
+    plt.axis('off')  # 不显示坐标轴
+    plt.show()
+
 
 
 def generate_random_noise(shape, intensity=0.05):
@@ -168,11 +188,15 @@ if boundary_alpha is not None:
     h, w, img_array_1 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_1)))
     class_1_optimized, conf_1_optimized = test_classifier(h, w, img_array_1, return_confidence=True)
     print(f"Optimized image 1 is classified as: {class_1_optimized} with confidence {conf_1_optimized}")
+    save_image(optimized_image_1, "optimized_image_1.jpg")
+    display_image(optimized_image_1, "Optimized Image 1")
 
     optimized_image_2 = optimize_confidence_to_target(random_image_side_2, target_class=ship_class_index)
     h, w, img_array_2 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_2)))
     class_2_optimized, conf_2_optimized = test_classifier(h, w, img_array_2, return_confidence=True)
     print(f"Optimized image 2 is classified as: {class_2_optimized} with confidence {conf_2_optimized}")
+    save_image(optimized_image_2, "optimized_image_2.jpg")
+    display_image(optimized_image_2, "Optimized Image 2")
 else:
     print("No decision boundary found.")
 

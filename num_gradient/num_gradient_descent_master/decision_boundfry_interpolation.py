@@ -27,6 +27,7 @@ def display_and_classify(sample, label):
     plt.imshow(sample)
     plt.title(f"{label} Representative Sample, Classified as: {identified_class}")
     plt.show()
+    return identified_class
 
 display_and_classify(frog_sample, "frog")
 display_and_classify(ship_sample, "ship")
@@ -58,16 +59,16 @@ for idx, sample in enumerate(interpolated_samples):
         break
     prev_class = identified_class
 
-    if boundary_alpha is not None:
-        # Generate random images on either side of the decision boundary
-        random_image_side_1 = generate_random_image(frog_sample, 0.05)
-        random_image_side_2 = generate_random_image(ship_sample, -0.05)
+if boundary_alpha is not None:
+    # Generate random images on either side of the decision boundary
+    random_image_side_1 = generate_random_image(frog_sample, 0.05)
+    random_image_side_2 = generate_random_image(ship_sample, -0.05)
 
-        # Classify and display these random images
-        class_1 = display_and_classify(Image.fromarray(np.uint8(random_image_side_1)), "Random Image Side 1")
-        class_2 = display_and_classify(Image.fromarray(np.uint8(random_image_side_2)), "Random Image Side 2")
+    # Classify and display these random images
+    class_1 = display_and_classify(Image.fromarray(np.uint8(random_image_side_1)), "Random Image Side 1")
+    class_2 = display_and_classify(Image.fromarray(np.uint8(random_image_side_2)), "Random Image Side 2")
 
-        print(f"Random image from side 1 is classified as: {class_1}")
-        print(f"Random image from side 2 is classified as: {class_2}")
-    else:
-        print("No decision boundary found.")
+    print(f"Random image from side 1 is classified as: {class_1}")
+    print(f"Random image from side 2 is classified as: {class_2}")
+else:
+    print("No decision boundary found.")

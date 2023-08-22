@@ -1,10 +1,13 @@
 import numpy as np
 from PIL import Image
 from t_ngd_cifar10 import test_classifier, linearize_pixels
-from t_ngd_cifar10 import create_f
+from t_ngd_cifar10 import net
+#from t_ngd_cifar10 import create_f
 from ngd_attacks import num_grad
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import torch
+
 
 
 def generate_random_noise(shape, intensity=0.05):
@@ -17,6 +20,32 @@ def generate_random_image(base_image, alpha_shift, noise_intensity=0.05):
     random_noise = generate_random_noise(interpolated_image.shape, noise_intensity)
     random_image = interpolated_image + random_noise
     return np.clip(random_image, 0, 255)
+
+def get_f(model, image, target_class):
+    """
+    Get the confidence score of a given image being classified as the target class.
+
+    Args:
+    - model: The classifier model.
+    - image: The input image.
+    - target_class: The target class index.
+
+    Returns:
+    - Confidence score of the image being in the target class.
+    """
+    # Ensure the model is in evaluation mode
+    model.eval()
+
+    # Get model output
+    output = model(image.unsqueeze(dim=0))
+
+    # Apply softmax to get probabilities
+    probabilities = F.softmax(output[0], dim=0)
+
+    # Return the confidence score for the target class
+    return probabilities[target_class].item()
+
+
 
 
 def pppgd_improved(f, x, num_steps=10, initial_step_size=0.5, momentum=0.9, target_confidence=0.5):
@@ -58,7 +87,7 @@ def pppgd_improved(f, x, num_steps=10, initial_step_size=0.5, momentum=0.9, targ
 # Note: Ensure that the 'f' function returns the confidence score of the image being in the desired class.
 # The 'num_grad' function should compute the gradient of this confidence score with respect to the image.
 
-def optimize_confidence_to_target(image, target_class, num_steps=100, initial_step_size=0.5, momentum=0.9,
+def optimize_confidence_to_target(model,image, target_class, num_steps=100, initial_step_size=0.5, momentum=0.9,
                                   target_confidence=0.5):
     """
     Optimize the confidence of an image to be closer to a target class.
@@ -72,7 +101,8 @@ def optimize_confidence_to_target(image, target_class, num_steps=100, initial_st
     - Optimized image.
     """
     h, w, _ = image.shape
-    f_target = create_f(h, w, target_class)
+    #f_target = create_f(h, w, target_class)
+    f_target = lambda x: get_f(model, x, target_class)
 
     optimized_image = pppgd_improved(f_target, image, num_steps=num_steps,
                                      initial_step_size=initial_step_size, momentum=momentum,
@@ -144,12 +174,12 @@ if boundary_alpha is not None:
 
     print(f"Random image from side 1 is classified as: {class_1}")
     print(f"Random image from side 2 is classified as: {class_2}")
-    optimized_image_1 = optimize_confidence_to_target(random_image_side_1, target_class=frog_class_index)
+    optimized_image_1 = optimize_confidence_to_target(net,random_image_side_1, target_class=frog_class_index)
     h, w, img_array_1 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_1)))
     class_1_optimized, conf_1_optimized = test_classifier(h, w, img_array_1, return_confidence=True)
     print(f"Optimized image 1 is classified as: {class_1_optimized} with confidence {conf_1_optimized}")
 
-    optimized_image_2 = optimize_confidence_to_target(random_image_side_2, target_class=ship_class_index)
+    optimized_image_2 = optimize_confidence_to_target(net,random_image_side_2, target_class=ship_class_index)
     h, w, img_array_2 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_2)))
     class_2_optimized, conf_2_optimized = test_classifier(h, w, img_array_2, return_confidence=True)
     print(f"Optimized image 2 is classified as: {class_2_optimized} with confidence {conf_2_optimized}")

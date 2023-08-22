@@ -35,6 +35,8 @@ def pppgd_improved(f, x, num_steps=100, initial_step_size=0.5, momentum=0.9, tar
     for i in range(num_steps):
         x = torch.from_numpy(x)
         update = momentum * update + step_size * sign_data_grad
+        print(x.shape)
+        print(update.shape)
         x = x + update
         x = x.detach().numpy()
         conf = f(x)

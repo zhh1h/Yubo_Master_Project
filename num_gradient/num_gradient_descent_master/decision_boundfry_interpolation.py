@@ -23,7 +23,7 @@ def generate_random_image(base_image, alpha_shift, noise_intensity=0.05):
     random_image = interpolated_image + random_noise
     return np.clip(random_image, 0, 255)
 
-def get_f(model, image, target_class):
+def get_f(model, input_image, target_class):
     """
     Get the confidence score of a given image being classified as the target class.
 
@@ -35,11 +35,12 @@ def get_f(model, image, target_class):
     Returns:
     - Confidence score of the image being in the target class.
     """
-    x = torch.Tensor(x).permute(2, 0, 1) / 255.0
-    image = transforms.Compose([transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])(x)
-    output = model(image.unsqueeze(0))
-    prob = F.softmax(output[0], dim=0)
-    return prob[target_class].item()
+    input_tensor = torch.Tensor(input_image).permute(2, 0, 1) / 255.0
+    transform = transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+    input_tensor = transform(input_tensor)
+    output = model(input_tensor.unsqueeze(dim=0))
+    conf = F.softmax(output[0], dim=0)[target_class].item()
+    return conf
 
 
 

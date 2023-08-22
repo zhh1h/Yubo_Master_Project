@@ -19,13 +19,14 @@ def generate_random_image(base_image, alpha_shift, noise_intensity=0.05):
     return np.clip(random_image, 0, 255)
 
 
-def pppgd_improved(f, x, num_steps=100, initial_step_size=0.5, momentum=0.9, target_confidence=0.5):
+def pppgd_improved(f, x, num_steps=10, initial_step_size=0.5, momentum=0.9, target_confidence=0.5):
     conf = f(x)
     print("Initial confidence is {}".format(conf))
 
     if conf >= target_confidence:
         print("Image already has confidence >= target confidence")
         return x
+
 
     step_size = initial_step_size
     grad = num_grad(f, x)  # Ensure that num_grad function returns the gradient with respect to the confidence score
@@ -35,8 +36,8 @@ def pppgd_improved(f, x, num_steps=100, initial_step_size=0.5, momentum=0.9, tar
     for i in range(num_steps):
         x = torch.from_numpy(x)
         update = momentum * update + step_size * sign_data_grad
-        print(x.shape)
-        print(update.shape)
+        # print(x.shape)
+        # print(update.shape)
         x = x + update
         x = x.detach().numpy()
         conf = f(x)

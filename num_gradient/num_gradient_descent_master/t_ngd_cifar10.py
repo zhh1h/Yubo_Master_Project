@@ -200,7 +200,7 @@ def create_f(h, w, target):
         #net.eval()
         #pixels = save_transform(h, w, x, save_img)
         pixels = save_transform(h, w, x, save_img)
-        output = net(pixels.unsqueeze(dim=0))
+        output = net.eval(pixels.unsqueeze(dim=0))
 
         output = F.softmax(output[0], dim=0)
 

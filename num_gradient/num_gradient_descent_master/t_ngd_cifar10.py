@@ -149,7 +149,7 @@ def save_img(img, count=None):
 #@profile
 def test_classifier(h, w, x,return_class_index = False, return_confidence = False):
     #x *= 255
-    #net.eval()
+    net.eval()
     pixels = x.reshape((h, w, 3)).astype('uint8')
 
     img = Image.fromarray(pixels, mode='RGB')
@@ -200,7 +200,9 @@ def create_f(h, w, target):
         #net.eval()
         #pixels = save_transform(h, w, x, save_img)
         pixels = save_transform(h, w, x, save_img)
-        output = net.eval(pixels.unsqueeze(dim=0))
+        net.eval()
+        output = net(pixels.unsqueeze(dim=0))
+
 
         output = F.softmax(output[0], dim=0)
 

@@ -58,7 +58,7 @@ for idx, sample in enumerate(interpolated_samples):
         break
     prev_class = identified_class
 
-    if boundary_alpha:
+    if boundary_alpha is not None:
         # Generate random images on either side of the decision boundary
         random_image_side_1 = generate_random_image(frog_sample, 0.05)
         random_image_side_2 = generate_random_image(ship_sample, -0.05)

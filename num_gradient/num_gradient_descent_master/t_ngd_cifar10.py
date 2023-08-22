@@ -113,6 +113,15 @@ print('Resumed')
 criterion = nn.CrossEntropyLoss()
 
 net.eval()
+def preprocess_image(h, w, x):
+    x = x.astype('uint8')
+    pixels = x.reshape((h, w, 3))
+    img = Image.fromarray(pixels, mode='RGB')
+    # ... any other preprocessing steps that you had in test_classifier should go here ...
+    # For example:
+    # img = some_transform(img)
+    img_tensor = torch.Tensor(np.array(img)).permute(2, 0, 1) / 255.0
+    return img_tensor
 
 
 def test(f=net):
@@ -149,34 +158,28 @@ def save_img(img, count=None):
 #@profile
 def test_classifier(h, w, x,return_class_index = False, return_confidence = False):
     #x *= 255
-    net.eval()
-    pixels = x.reshape((h, w, 3)).astype('uint8')
+    img_tensor = preprocess_image(h, w, x)
 
-    img = Image.fromarray(pixels, mode='RGB')
-    img = transform_fn(img)
-    #print(img)
-    output_1= net(img.unsqueeze(dim=0))
-    output = F.softmax(output_1[0], dim=0)
-    #output = F.cross_entropy(output_1[0],dim=0)
+    # 使用预处理后的张量进行分类
+    output = net(img_tensor.unsqueeze(dim=0))
+    output_softmax = F.softmax(output[0], dim=0)
 
-
-    save_img(img, count=1)
-
-    value, index = torch.max(output, 0)
-    #print([t for t in zip(output, classes)])
-    print("{} -- {}".format(value, classes[index]))
+    # 其他部分保持不变
+    value, index = torch.max(output_softmax, 0)
+    predicted_class = classes[index]
+    print("{} -- {}".format(value, predicted_class))
+    if return_class_index and return_confidence:
+        return predicted_class, index, value.item()
+    elif return_class_index:
+        return predicted_class, index
+    elif return_confidence:
+        return predicted_class, value.item()
+    else:
+        return predicted_class
+    #print("{} -- {}".format(value, classes[index]))
     print(f"output_1:{output_1}")
     print(f"output:{output}")
-    # 根据需要返回的值来构建返回值
-    if return_class_index and return_confidence:
-        return classes[index], index.item(), value.item()
-    elif return_class_index:
-        return classes[index], index.item()
-    elif return_confidence:
-        return classes[index], value.item()
-    else:
-        return classes[index]
-    #return index
+
 
 def save_transform(h, w, x, save_img=None):
     #x *= 255
@@ -197,22 +200,16 @@ def save_transform(h, w, x, save_img=None):
 
 def create_f(h, w, target):
     def f(x, save_img=None, check_prediction=False):
-        #net.eval()
-        #pixels = save_transform(h, w, x, save_img)
-        pixels = save_transform(h, w, x, save_img)
-        net.eval()
-        output = net(pixels.unsqueeze(dim=0))
-
-
+        # Preprocess the image
+        img_tensor = preprocess_image(h, w, x)
+        output = net(img_tensor.unsqueeze(dim=0))
         output = F.softmax(output[0], dim=0)
-
         if check_prediction:
             conf_predicted, predicted = torch.max(output, 0)
             print("target: {} predicted: {}".format(classes[target], classes[predicted]))
             if predicted != target:
                 return 0
         return output[target].item()
-    #return lambda x: f(x, target)
     return f
 
 

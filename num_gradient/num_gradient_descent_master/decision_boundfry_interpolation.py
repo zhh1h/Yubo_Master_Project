@@ -22,62 +22,63 @@ def generate_random_image(base_image, alpha_shift, noise_intensity=0.05):
 
 
 
-# def pppgd_improved(f, x, num_steps=10, initial_step_size=0.5, momentum=0.9, target_confidence=0.5):
-#     conf = f(x)
-#     print("Initial confidence is {}".format(conf))
-#
-#     if conf >= target_confidence:
-#         print("Image already has confidence >= target confidence")
-#         return x
-#
-#
-#     step_size = initial_step_size
-#     grad = num_grad(f, x)  # Ensure that num_grad function returns the gradient with respect to the confidence score
-#     sign_data_grad = torch.sign(torch.from_numpy(grad))
-#     update = torch.zeros_like(sign_data_grad)
-#
-#     for i in range(num_steps):
-#         x = torch.from_numpy(x)
-#         update = momentum * update + step_size * sign_data_grad
-#         # print(x.shape)
-#         # print(update.shape)
-#         x = x + update
-#         x = x.detach().numpy()
-#         conf = f(x)
-#         print("Step {}, confidence {}".format(i + 1, conf))
-#
-#         if conf >= target_confidence:
-#             print("Reached target confidence!")
-#             break
-#
-#         step_size *= 0.99  # learning rate decay
-#
-#     conf = f(x)
-#     print("Final confidence is {}".format(conf))
-#
-#     return x
-
-def num_ascent(f, x, threshold=0.5, max_iterations=100, step_size=0.8):
+def pppgd_improved(f, x, num_steps=10, initial_step_size=0.5, momentum=0.9, target_confidence=0.5):
     conf = f(x)
     print("Initial confidence is {}".format(conf))
 
-    iteration = 0
-    while conf < threshold and iteration < max_iterations:
-        grad = num_grad(f, x)
-        x += step_size * grad
+    if conf >= target_confidence:
+        print("Image already has confidence >= target confidence")
+        return x
+
+
+    step_size = initial_step_size
+    grad = num_grad(f, x)  # Ensure that num_grad function returns the gradient with respect to the confidence score
+    sign_data_grad = torch.sign(torch.from_numpy(grad))
+    update = torch.zeros_like(sign_data_grad)
+
+    for i in range(num_steps):
+        x = torch.from_numpy(x)
+        update = momentum * update + step_size * sign_data_grad
+        # print(x.shape)
+        # print(update.shape)
+        x = x + update
+        x = x.detach().numpy()
         conf = f(x)
+        print("Step {}, confidence {}".format(i + 1, conf))
 
-        print("Iteration {}: Confidence {}".format(iteration + 1, conf))
-        iteration += 1
+        if conf >= target_confidence:
+            print("Reached target confidence!")
+            break
 
+        step_size *= 0.99  # learning rate decay
+
+    conf = f(x)
     print("Final confidence is {}".format(conf))
+
     return x
+
+# def num_ascent(f, x, threshold=0.5, max_iterations=100, step_size=0.8):
+#     conf = f(x)
+#     print("Initial confidence is {}".format(conf))
+#
+#     iteration = 0
+#     while conf < threshold and iteration < max_iterations:
+#         grad = num_grad(f, x)
+#         x += step_size * grad
+#         conf = f(x)
+#
+#         print("Iteration {}: Confidence {}".format(iteration + 1, conf))
+#         iteration += 1
+#
+#     print("Final confidence is {}".format(conf))
+#     return x
 
 
 # Note: Ensure that the 'f' function returns the confidence score of the image being in the desired class.
 # The 'num_grad' function should compute the gradient of this confidence score with respect to the image.
 
-def optimize_confidence_to_target(image, target_class, threshold=0.5, max_iterations=100, step_size=0.8):
+def optimize_confidence_to_target(image, target_class, num_steps=100, initial_step_size=0.5, momentum=0.9,
+                                  target_confidence=0.5):
     """
     Optimize the confidence of an image to be closer to a target class.
 
@@ -89,19 +90,14 @@ def optimize_confidence_to_target(image, target_class, threshold=0.5, max_iterat
     Returns:
     - Optimized image.
     """
-    # h, w, _ = image.shape
-    # f_target = create_f(h, w, target_class)
-    #
-    # optimized_image = pppgd_improved(f_target, image, num_steps=num_steps,
-    #                                  initial_step_size=initial_step_size, momentum=momentum,
-    #                                  target_confidence=target_confidence)
-    # return optimized_image
     h, w, _ = image.shape
-    f_target = create_f(h, w, target_class)  # Here, we assume net is globally defined. Modify as needed.
+    f_target = create_f(h, w, target_class)
 
-    optimized_image = num_ascent(f_target, image, threshold=threshold,
-                                 max_iterations=max_iterations, step_size=step_size)
+    optimized_image = pppgd_improved(f_target, image, num_steps=num_steps,
+                                     initial_step_size=initial_step_size, momentum=momentum,
+                                     target_confidence=target_confidence)
     return optimized_image
+
 
 
 # Now, you can call this function for each side of the decision boundary.

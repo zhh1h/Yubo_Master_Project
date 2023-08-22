@@ -90,15 +90,15 @@ ship_sample = Image.open('./data/cifar_pictures/NO.2class8ship.jpg')
 # Display and classify the representative samples
 def display_and_classify(sample, label):
     h, w, img_array = linearize_pixels(sample)
-    identified_class = test_classifier(h, w, img_array)
+    identified_class,class_index,confidence = test_classifier(h, w, img_array,return_class_index = True, return_confidence = True)
     plt.imshow(sample)
     plt.title(f"{label} Representative Sample, Classified as: {identified_class}")
     plt.show()
-    return identified_class  # Return the identified class for further comparison
+    return identified_class, class_index # Return the identified class for further comparison
 
 
-display_and_classify(frog_sample, "frog")
-display_and_classify(ship_sample, "ship")
+frog_class,frog_class_index = display_and_classify(frog_sample, "frog")
+ship_class, ship_class_index = display_and_classify(ship_sample, "ship")
 
 # Convert these samples to numpy arrays
 frog_sample = np.array(frog_sample)
@@ -141,14 +141,16 @@ if boundary_alpha is not None:
 
     print(f"Random image from side 1 is classified as: {class_1}")
     print(f"Random image from side 2 is classified as: {class_2}")
+    optimized_image_1 = optimize_confidence_to_target(random_image_side_1, target_class=frog_class_index)
+    h, w, img_array_1 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_1)))
+    class_1_optimized, conf_1_optimized = test_classifier(h, w, img_array_1, return_confidence=True)
+    print(f"Optimized image 1 is classified as: {class_1_optimized} with confidence {conf_1_optimized}")
+
+    optimized_image_2 = optimize_confidence_to_target(random_image_side_2, target_class=ship_class_index)
+    h, w, img_array_2 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_2)))
+    class_2_optimized, conf_2_optimized = test_classifier(h, w, img_array_2, return_confidence=True)
+    print(f"Optimized image 2 is classified as: {class_2_optimized} with confidence {conf_2_optimized}")
 else:
     print("No decision boundary found.")
 
 
-optimized_image_1 = optimize_confidence_to_target(random_image_side_1, target_class=frog_sample)
-h, w, img_array_1 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_1)))
-test_classifier(h,w,img_array_1)
-
-optimized_image_2 = optimize_confidence_to_target(random_image_side_2, target_class=ship_sample)
-h, w, img_array_2 = linearize_pixels(Image.fromarray(np.uint8(optimized_image_2)))
-test_classifier(h,w,img_array_2)

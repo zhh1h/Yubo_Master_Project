@@ -147,7 +147,7 @@ def save_img(img, count=None):
 
 
 #@profile
-def test_classifier(h, w, x):
+def test_classifier(h, w, x,return_class_index = False, return_confidence = False):
     #x *= 255
     #net.eval()
     pixels = x.reshape((h, w, 3)).astype('uint8')
@@ -167,7 +167,16 @@ def test_classifier(h, w, x):
     print("{} -- {}".format(value, classes[index]))
     print(f"output_1:{output_1}")
     print(f"output:{output}")
-    return index
+    # 根据需要返回的值来构建返回值
+    if return_class_index and return_confidence:
+        return classes[index], index.item(), value.item()
+    elif return_class_index:
+        return classes[index], index.item()
+    elif return_confidence:
+        return classes[index], value.item()
+    else:
+        return classes[index]
+    #return index
 
 def save_transform(h, w, x, save_img=None):
     #x *= 255

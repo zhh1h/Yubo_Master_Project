@@ -2,6 +2,8 @@ import numpy as np
 from PIL import Image
 from t_ngd_cifar10 import test_classifier, linearize_pixels
 from t_ngd_cifar10 import net
+from torchvision import transforms
+
 #from t_ngd_cifar10 import create_f
 from ngd_attacks import num_grad
 import torch.nn.functional as F
@@ -33,17 +35,11 @@ def get_f(model, image, target_class):
     Returns:
     - Confidence score of the image being in the target class.
     """
-    # Ensure the model is in evaluation mode
-    model.eval()
-
-    # Get model output
-    output = model(image.unsqueeze(dim=0))
-
-    # Apply softmax to get probabilities
-    probabilities = F.softmax(output[0], dim=0)
-
-    # Return the confidence score for the target class
-    return probabilities[target_class].item()
+    x = torch.Tensor(x).permute(2, 0, 1) / 255.0
+    image = transforms.Compose([transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])(x)
+    output = model(image.unsqueeze(0))
+    prob = F.softmax(output[0], dim=0)
+    return prob[target_class].item()
 
 
 

@@ -4,9 +4,9 @@ from t_ngd_cifar10 import test_classifier, linearize_pixels
 import matplotlib.pyplot as plt
 
 
-
 def generate_random_noise(shape, intensity=0.05):
     return np.random.uniform(-intensity, intensity, shape)
+
 
 def generate_random_image(base_image, alpha_shift, noise_intensity=0.05):
     alpha = boundary_alpha + alpha_shift
@@ -16,40 +16,42 @@ def generate_random_image(base_image, alpha_shift, noise_intensity=0.05):
     return np.clip(random_image, 0, 255)
 
 
-# 选择两个类别的代表性样本
-frog_sample = Image.open('./data/cifar_pictures/NO.1class6frog.jpg')  # 这里需要替换为实际的路径
-ship_sample = Image.open('./data/cifar_pictures/NO.2class8ship.jpg')  # 同样需要替换为实际的路径
+# Choosing representative samples for two classes
+frog_sample = Image.open('./data/cifar_pictures/NO.1class6frog.jpg')
+ship_sample = Image.open('./data/cifar_pictures/NO.2class8ship.jpg')
 
-# 显示并分类代表性样本
+
+# Display and classify the representative samples
 def display_and_classify(sample, label):
     h, w, img_array = linearize_pixels(sample)
     identified_class = test_classifier(h, w, img_array)
     plt.imshow(sample)
     plt.title(f"{label} Representative Sample, Classified as: {identified_class}")
     plt.show()
-    return identified_class
+    return identified_class  # Return the identified class for further comparison
+
 
 display_and_classify(frog_sample, "frog")
 display_and_classify(ship_sample, "ship")
 
-# 将这些样本转化为numpy数组
+# Convert these samples to numpy arrays
 frog_sample = np.array(frog_sample)
 ship_array = np.array(ship_sample)
 
-# 在这两个样本之间进行线性插值
-steps = 25  # 您可以更改此值以获取更多或更少的插值步骤
+# Perform linear interpolation between these two samples
+steps = 25
 alpha_values = np.linspace(0, 1, steps)
 interpolated_samples = [(1 - alpha) * frog_sample + alpha * ship_array for alpha in alpha_values]
 
 boundary_alpha = None
 prev_class = None
 
-# 将插值样本输入到模型中并观察输出
+# Feed the interpolated samples into the model and observe the output
 for idx, sample in enumerate(interpolated_samples):
     h, w, img_array = linearize_pixels(Image.fromarray(np.uint8(sample)))
     identified_class = test_classifier(h, w, img_array)
 
-    # 显示插值样本和模型的输出
+    # Display interpolated sample and model's output
     plt.imshow(np.uint8(sample))
     plt.title(f"Alpha: {alpha_values[idx]}, Classified as: {identified_class}")
     plt.show()
@@ -59,7 +61,10 @@ for idx, sample in enumerate(interpolated_samples):
         break
     prev_class = identified_class
 
+# Check if boundary_alpha was found
 if boundary_alpha is not None:
+    print(f"Found decision boundary at alpha: {boundary_alpha}")
+
     # Generate random images on either side of the decision boundary
     random_image_side_1 = generate_random_image(frog_sample, 0.05)
     random_image_side_2 = generate_random_image(ship_sample, -0.05)

@@ -66,7 +66,7 @@ if boundary_alpha is not None:
     print(f"Found decision boundary at alpha: {boundary_alpha}")
 
     # Generate random images on either side of the decision boundary
-    random_image_side_1 = generate_random_image(frog_sample, 0.002)
+    random_image_side_1 = generate_random_image(frog_sample, 0.02)
     random_image_side_2 = generate_random_image(ship_sample, -0.02)
 
     # Classify and display these random images

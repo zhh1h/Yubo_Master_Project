@@ -177,7 +177,7 @@ def test_classifier(h, w, x,return_class_index = False, return_confidence = Fals
     else:
         return predicted_class
     #print("{} -- {}".format(value, classes[index]))
-    print(f"output_1:{output}")
+    #print(f"output_1:{output}")
     print(f"output:{output_softmax}")
 
 

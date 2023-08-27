@@ -24,7 +24,7 @@ for i, pixel_value in enumerate(range(127, 117, -1)):
     img_path = f'fix_pixels_images/fix_pixels{pixel_value}.jpg'
     img.save(img_path)
     h, w, img_array = linearize_pixels(Image.fromarray(np.uint8(img)))
-    identified_class = test_classifier(h, w, img_array)
+    identified_class = test_classifier(h, w, img_array,return_confidence = True)
 
     # 展示图片
     axes[i].imshow(img)

@@ -168,6 +168,8 @@ def test_classifier(h, w, x,return_class_index = False, return_confidence = Fals
     value, index = torch.max(output_softmax, 0)
     predicted_class = classes[index]
     print("{} -- {}".format(value, predicted_class))
+    #print(f"output_1:{output}")
+    print(f"output:{output_softmax}")
     if return_class_index and return_confidence:
         return predicted_class, index, value.item()
     elif return_class_index:
@@ -177,8 +179,8 @@ def test_classifier(h, w, x,return_class_index = False, return_confidence = Fals
     else:
         return predicted_class
     #print("{} -- {}".format(value, classes[index]))
-    #print(f"output_1:{output}")
-    print(f"output:{output_softmax}")
+    # print(f"output_1:{output}")
+    # print(f"output:{output_softmax}")
 
 
 def save_transform(h, w, x, save_img=None):

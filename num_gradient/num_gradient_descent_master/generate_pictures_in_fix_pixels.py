@@ -2,6 +2,8 @@ from PIL import Image
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+from t_ngd_cifar10 import test_classifier, linearize_pixels
+from t_ngd_cifar10 import create_f
 
 # 创建保存图片的文件夹，如果不存在的话
 if not os.path.exists('fix_pixels_images'):
@@ -21,6 +23,8 @@ for i, pixel_value in enumerate(range(127, 117, -1)):
     # 保存图片
     img_path = f'fix_pixels_images/fix_pixels{pixel_value}.jpg'
     img.save(img_path)
+    h, w, img_array = linearize_pixels(Image.fromarray(np.uint8(img)))
+    identified_class = test_classifier(h, w, img_array)
 
     # 展示图片
     axes[i].imshow(img)

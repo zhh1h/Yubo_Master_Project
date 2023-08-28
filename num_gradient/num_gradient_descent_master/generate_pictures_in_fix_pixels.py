@@ -13,7 +13,7 @@ if not os.path.exists('fix_pixels_images'):
 fig, axes = plt.subplots(1, 10, figsize=(20, 2))
 
 # 生成10张32*32的单色图片
-for i, pixel_value in enumerate(range(157, 147, -1)):
+for i, pixel_value in enumerate(range(167, 157, -1)):
     # 创建一个32*32*3的NumPy数组
     img_array = np.full((32, 32, 3), pixel_value, dtype=np.uint8)
 

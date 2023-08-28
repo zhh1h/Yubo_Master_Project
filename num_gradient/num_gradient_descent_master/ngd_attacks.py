@@ -224,9 +224,7 @@ def pppgd(f, x, num_steps=100, initial_alpha=0.5, momentum=0.9):
         x = x.detach().numpy()
         conf = f(x)
         print("Step {}, confidence {}".format(i + 1, conf))
-        alpha *= 0.99  # learning rate decay
-        if conf >= 0.5:
-            break
+        alpha *= 0.99  # learning rate decayif conf >= 0.5: break
 
 
     conf = f(x)

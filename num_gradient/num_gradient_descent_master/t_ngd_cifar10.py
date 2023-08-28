@@ -261,23 +261,23 @@ if args.input_pic:
             #print(f(img_array))
             #img_array = ngd.num_ascent_g(f, img_array)
             start_time0 = time.time()
-            while True:
-                start_time = time.time()
+            #while True:
+            start_time = time.time()
                 #img_array = ngd.num_ascent(f, img_array)
                 #img_array = ngd.num_ascent_g(f, img_array)
                 #img_array = ngd.ppgd(f, img_array)
-                img_array = ngd.pppgd(f, img_array,num_steps = 10)
+            img_array = ngd.pppgd(f, img_array,num_steps = 10)
                 #img_array = ngd.pgd_d(f, img_array, epsilons=0.3, alpha=0.01, num_steps=5)
-                index = test_classifier(h,w,img_array)
-                print(index)
-                step_time = time.time()
-                time_interval = step_time - start_time
-                print(f"gradient time: {time_interval} 秒")
-                #if ((test_classifier(h, w, img_array)) == classes.index(args.target)) and (create_f(h, w, img_array) >= 0.5):
-                #if create_f(h, w, classes.index(args.target)) >= 0.5:
-                final_time= time.time()
-                final_interval = final_time - start_time0
-                print(f"final time interval: {final_interval} 秒")
+            index = test_classifier(h,w,img_array)
+            print(index)
+            step_time = time.time()
+            time_interval = step_time - start_time
+            print(f"gradient time: {time_interval} 秒")
+            #if ((test_classifier(h, w, img_array)) == classes.index(args.target)) and (create_f(h, w, img_array) >= 0.5):
+            #if create_f(h, w, classes.index(args.target)) >= 0.5:
+            final_time= time.time()
+            final_interval = final_time - start_time0
+            print(f"final time interval: {final_interval} 秒")
 
 
                 #break

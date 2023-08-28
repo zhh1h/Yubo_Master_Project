@@ -119,7 +119,7 @@ def preprocess_image(h, w, x):
     img = Image.fromarray(pixels, mode='RGB')
     # ... any other preprocessing steps that you had in test_classifier should go here ...
     # For example:
-    # img = some_transform(img)
+    img = save_transform(img)
     img_tensor = torch.Tensor(np.array(img)).permute(2, 0, 1) / 255.0
     return img_tensor
 
@@ -170,6 +170,7 @@ def test_classifier(h, w, x,return_class_index = False, return_confidence = Fals
     print("{} -- {}".format(value, predicted_class))
     #print(f"output_1:{output}")
     print(f"output:{output_softmax}")
+    save_img(img, count=0)
     if return_class_index and return_confidence:
         return predicted_class, index, value.item()
     elif return_class_index:
@@ -203,7 +204,9 @@ def save_transform(h, w, x, save_img=None):
 def create_f(h, w, target):
     def f(x, save_img=None, check_prediction=False):
         # Preprocess the image
+        #pixels = save_transform(h, w, x, save_img)
         img_tensor = preprocess_image(h, w, x)
+        #img_tensor = save_transform(h, w, x, save_img)
         output = net(img_tensor.unsqueeze(dim=0))
         output = F.softmax(output[0], dim=0)
         if check_prediction:

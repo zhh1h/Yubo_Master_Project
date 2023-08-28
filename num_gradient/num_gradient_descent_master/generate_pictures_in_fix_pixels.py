@@ -4,6 +4,13 @@ import os
 import matplotlib.pyplot as plt
 from t_ngd_cifar10 import test_classifier, linearize_pixels
 from t_ngd_cifar10 import create_f
+import argparse
+
+
+parser = argparse.ArgumentParser(description='fixed pixel images')
+parser.add_argument('--input-pic', '-i', type=str, help='Input image', required=False)
+parser.add_argument('--target', type=str, help='Target class', required=False)
+args = parser.parse_args()
 
 # 创建保存图片的文件夹，如果不存在的话
 if not os.path.exists('fix_pixels_images'):

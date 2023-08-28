@@ -273,7 +273,7 @@ if args.input_pic:
                 step_time = time.time()
                 time_interval = step_time - start_time
                 print(f"gradient time: {time_interval} 秒")
-                if (test_classifier(h, w, img_array)) == classes.index(args.target):
+                if ((test_classifier(h, w, img_array)) == classes.index(args.target)) and (f >= 0.5):
                     final_time= time.time()
                     final_interval = final_time - start_time0
                     print(f"final time interval: {final_interval} 秒")

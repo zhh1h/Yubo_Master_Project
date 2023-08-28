@@ -269,7 +269,7 @@ if args.input_pic:
                 #img_array = ngd.num_ascent(f, img_array)
                 #img_array = ngd.num_ascent_g(f, img_array)
                 #img_array = ngd.ppgd(f, img_array)
-            while f(img_array) <= 0.5:
+            while f(img_array) <= 0.8:
                 img_array = ngd.pppgd(f, img_array,num_steps = 10)
                 #img_array = ngd.pgd_d(f, img_array, epsilons=0.3, alpha=0.01, num_steps=5)
                 index = test_classifier(h,w,img_array)

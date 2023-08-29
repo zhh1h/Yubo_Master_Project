@@ -146,10 +146,13 @@ def test(f=net):
 
 #
 def save_img(img, count=None):
-    if count != None:
+    if not isinstance(img, (torch.Tensor, np.ndarray)):
+        # 如果 img 已经是一个 PIL 图像，则直接保存
+        img.save(f'output{count}.jpg' if count is not None else 'output.jpg')
+    else:
+        # 否则，将其转换为 PIL 图像并保存
         img = transforms.ToPILImage()(img)
-        img.save('output{}.jpg'.format(count))
-
+        img.save(f'output{count}.jpg' if count is not None else 'output.jpg')
 
 
 

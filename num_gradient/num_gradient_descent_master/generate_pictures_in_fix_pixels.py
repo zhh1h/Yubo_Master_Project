@@ -25,7 +25,7 @@ for i, pixel_value in enumerate(range(256, 247, -1)):
     img_array = np.full((32, 32, 3), pixel_value, dtype=np.uint8)
 
     # 使用PIL从NumPy数组创建一个图片对象
-    img = Image.fromarray(img_array, 'RGB
+    img = Image.fromarray(img_array, 'RGB')
     # 保存图片
     img_path = f'fix_pixels_images/fix_pixels{pixel_value}.jpg'
     img.save(img_path)

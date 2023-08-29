@@ -119,7 +119,7 @@ def preprocess_image(h, w, x):
     img = Image.fromarray(pixels, mode='RGB')
     # ... any other preprocessing steps that you had in test_classifier should go here ...
     # For example:
-    img = save_transform(img)
+    #img = save_transform(save_img=None)
     img_tensor = torch.Tensor(np.array(img)).permute(2, 0, 1) / 255.0
     return img_tensor
 
@@ -158,7 +158,10 @@ def save_img(img, count=None):
 #@profile
 def test_classifier(h, w, x,return_class_index = False, return_confidence = False):
     #x *= 255
+
+
     img_tensor = preprocess_image(h, w, x)
+    save_img(img_tensor, count=0)
 
     # 使用预处理后的张量进行分类
     output = net(img_tensor.unsqueeze(dim=0))
@@ -185,26 +188,44 @@ def test_classifier(h, w, x,return_class_index = False, return_confidence = Fals
 
 
 def save_transform(h, w, x, save_img=None):
-    #x *= 255
-    #img = x.reshape((h, w, 3)).astype('uint8')
     if isinstance(x, torch.Tensor):
-        img = x.to(torch.uint8).cpu().numpy().reshape((h, w, 3))
-    else:  # x is a numpy ndarray
-        img = x.reshape((h, w, 3)).astype(np.uint8)
+        x = x.to(torch.uint8).cpu().numpy()
 
+        # 将图像数组重塑为 (h, w, 3)
+    img_data = x.reshape((h, w, 3)).astype('uint8')
 
-    img = Image.fromarray(img, mode='RGB')
-    img.save('output.jpg')
-    if save_img != None:
-        img.save('imgs/output{}.jpg'.format(save_img))
-    img = Image.open('output.jpg')
-    img = transform_fn(img)
-    return img
+    # 使用PIL创建图像
+    img_to_save = Image.fromarray(img_data, 'RGB')
+
+    # 保存图像
+    img_to_save.save('output.jpg')
+
+    # 如果提供了save_img参数，以另一个名称保存图像
+    if save_img is not None:
+        img_to_save.save(f'imgs/output{save_img}.jpg')
+
+    return img_to_save  # 如果需要，也可以返回保存的图像
+    # #x *= 255
+    # #img = x.reshape((h, w, 3)).astype('uint8')
+    # if isinstance(x, torch.Tensor):
+    #     img = x.to(torch.uint8).cpu().numpy().reshape((h, w, 3))
+    # else:  # x is a numpy ndarray
+    #     img = x.reshape((h, w, 3)).astype(np.uint8)
+    #
+    #
+    # img = Image.fromarray(img, mode='RGB')
+    # img.save('output.jpg')
+    # if save_img != None:
+    #     img.save('imgs/output{}.jpg'.format(save_img))
+    # img = Image.open('output.jpg')
+    # img = transform_fn(img)
+    # return img
 
 def create_f(h, w, target):
     def f(x, save_img=None, check_prediction=False):
         # Preprocess the image
         #pixels = save_transform(h, w, x, save_img)
+        save_transform(h, w, x, save_img)
         img_tensor = preprocess_image(h, w, x)
         #img_tensor = save_transform(h, w, x, save_img)
         output = net(img_tensor.unsqueeze(dim=0))

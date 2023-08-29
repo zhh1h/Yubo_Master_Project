@@ -176,7 +176,7 @@ def test_classifier(h, w, x,return_class_index = False, return_confidence = Fals
     print("{} -- {}".format(value, predicted_class))
     #print(f"output_1:{output}")
     print(f"output:{output_softmax}")
-    save_img(img, count=1)
+    ##save_img(img, count=0)
     if return_class_index and return_confidence:
         return predicted_class, index, value.item()
     elif return_class_index:
@@ -293,7 +293,7 @@ if args.input_pic:
                 #img_array = ngd.num_ascent(f, img_array)
                 #img_array = ngd.num_ascent_g(f, img_array)
                 #img_array = ngd.ppgd(f, img_array)
-            while f(img_array) <= 0.8:
+            while f(img_array) <= 0.95:
                 img_array = ngd.pppgd(f, img_array,num_steps = 10)
                 #img_array = ngd.pgd_d(f, img_array, epsilons=0.3, alpha=0.01, num_steps=5)
                 index = test_classifier(h,w,img_array)

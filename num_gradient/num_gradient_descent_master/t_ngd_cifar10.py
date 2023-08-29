@@ -176,7 +176,7 @@ def test_classifier(h, w, x,return_class_index = False, return_confidence = Fals
     print("{} -- {}".format(value, predicted_class))
     #print(f"output_1:{output}")
     print(f"output:{output_softmax}")
-    save_img(img, count=0)
+    save_img(img, count=1)
     if return_class_index and return_confidence:
         return predicted_class, index, value.item()
     elif return_class_index:

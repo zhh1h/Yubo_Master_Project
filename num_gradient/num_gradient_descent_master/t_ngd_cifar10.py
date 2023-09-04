@@ -161,12 +161,13 @@ def save_img(img, count=None):
 #@profile
 def test_classifier(h, w, x, preprocessed=False, return_class_index=False, return_confidence=False):
     if not preprocessed:
-        x = preprocess_image(h, w, x)
-
+        img_tensor = preprocess_image(h, w, x)
+    else:
+        img_tensor = x
     #x *= 255
 
 
-    img_tensor = preprocess_image(h, w, x)
+    #img_tensor = preprocess_image(h, w, x)
     #save_img(img_tensor, count=0)
 
     # 使用预处理后的张量进行分类

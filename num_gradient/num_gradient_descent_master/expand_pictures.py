@@ -17,29 +17,22 @@ from t_ngd_cifar10 import preprocess_image
 
 # 修改后的 generate_image_with_global_noise 函数，添加了保存图片和分类功能
 def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
-    # 重新将一维数组转换为多维数组（图像）
     original_image = img_array.reshape((h, w, 3)).astype('uint8')
 
-    # 生成与原图相同形状的随机噪声（这里没有使用协方差矩阵）
+    # 生成高斯噪声并添加到原图
     noise = np.random.normal(0, std_deviation, original_image.shape)
-
-    # 将随机噪声添加到原图上
     new_image = original_image + noise
-
-    # 限制新像素值在合法范围内（例如，0到255对于uint8图像）
     new_image = np.clip(new_image, 0, 255).astype(np.uint8)
 
-    # 使用预处理函数转换新图像为张量
+    # 预处理新图像
     img_tensor = preprocess_image(h, w, new_image)
 
     # 保存新图像
     img_path = f"new_Image{std_deviation}.jpg"
     Image.fromarray(new_image, 'RGB').save(img_path)
-    print(f"图像保存在 {img_path}")
 
-    # 使用 test_classifier 函数进行分类
-    img_tensor = preprocess_image(h, w, new_image)  # 预处理新图像
-    predicted_class = test_classifier(h, w, img_tensor)  # 直接使用预处理后的img_tensor
+    # 对新图像进行分类
+    predicted_class = test_classifier(h, w, img_tensor, preprocessed=True)
     print(f"新图像的预测类别：{predicted_class}")
 
 # 使用 linearize_pixels 函数处理原始图像，并得到高度 h，宽度 w，和一维数组 img_array

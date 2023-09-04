@@ -159,12 +159,14 @@ def save_img(img, count=None):
 
 
 #@profile
-def test_classifier(h, w, img_tensor,  return_class_index=False, return_confidence=False):
-    # if not preprocessed:
-    #     img_tensor = preprocess_image(h, w, x)
-    # else:
-    #     img_tensor = x
-    # #x *= 255
+def test_classifier(h, w, x, preprocessed=False, return_class_index=False, return_confidence=False):
+    if not preprocessed:
+        img_tensor = preprocess_image(h, w, x)
+    else:
+        img_tensor = x  # 如果已经预处理，直接使用
+
+
+
 
 
     #img_tensor = preprocess_image(h, w, x)

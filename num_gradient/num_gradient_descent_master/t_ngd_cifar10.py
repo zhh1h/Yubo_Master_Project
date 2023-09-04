@@ -167,6 +167,7 @@ def test_classifier(h, w, x,return_class_index = False, return_confidence = Fals
     #save_img(img_tensor, count=0)
 
     # 使用预处理后的张量进行分类
+    net.eval()
     output = net(img_tensor.unsqueeze(dim=0))
     output_softmax = F.softmax(output[0], dim=0)
 

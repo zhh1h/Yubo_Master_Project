@@ -28,7 +28,7 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
     print(f"图像保存在 {img_path}")
 
     # 使用 test_classifier 函数进行分类
-    net.eval()
+    #net.eval()
     img_array = new_image.reshape(h * w * 3).astype('float64')
     predicted_class = test_classifier(h, w, img_array)
     print(f"新图像的预测类别：{predicted_class}")

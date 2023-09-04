@@ -36,5 +36,5 @@ your_original_image = Image.open("./output.jpg")
 h, w, img_array = linearize_pixels(your_original_image)
 
 # 使用 generate_image_with_noise_and_classify 函数添加噪声并分类
-std_deviation = 0  # 这个值可以根据需要进行调整
+std_deviation = 1  # 这个值可以根据需要进行调整
 generate_image_with_noise_and_classify(h, w, img_array, std_deviation)

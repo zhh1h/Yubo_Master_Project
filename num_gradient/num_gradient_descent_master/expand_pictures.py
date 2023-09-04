@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
 from t_ngd_cifar10 import test_classifier, linearize_pixels
+from t_ngd_cifar10 import net
 
 
 # 假设 test_classifier 函数已经定义，这里仅为示例
@@ -20,7 +21,7 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
 
     # 限制新像素值在合法范围内（例如，0到255对于uint8图像）
     new_image = np.clip(new_image, 0, 255).astype(np.uint8)
-
+    net.eval()
     # 保存新图像
     img_path = f"new_Image{std_deviation}.jpg"
     Image.fromarray(new_image, 'RGB').save(img_path)

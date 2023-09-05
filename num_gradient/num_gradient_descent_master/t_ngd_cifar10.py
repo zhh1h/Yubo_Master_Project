@@ -340,6 +340,8 @@ if args.input_pic:
             # 使用 PIL 库保存图像
             final_img = Image.fromarray(reshaped_img_array, 'RGB')
             final_img.save('output_final.jpg')
+            h, w, img_array = linearize_pixels(final_img)
+            test_classifier(h, w, img_array)
             final_time= time.time()
             final_interval = final_time - start_time0
             print(f"final time interval: {final_interval} 秒")

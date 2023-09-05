@@ -252,12 +252,19 @@ def create_f(h, w, target):
 
 
 
+# def linearize_pixels(img):
+#     x = np.copy(np.asarray(img))
+#     h, w, c = x.shape
+#     img_array = x.reshape(h*w*c).astype('float64')
+#     #img_array /= 255
+#     return h, w, img_array
+
 def linearize_pixels(img):
-    x = np.copy(np.asarray(img))
+    x = np.copy(np.asarray(img, dtype='uint8'))  # 保持为 uint8 类型
     h, w, c = x.shape
-    img_array = x.reshape(h*w*c).astype('float64')
-    #img_array /= 255
+    img_array = x.reshape(h * w * c).astype('uint8')  # 确保仍然是 uint8 类型
     return h, w, img_array
+
 
 
 # def linearize_pixels(img):

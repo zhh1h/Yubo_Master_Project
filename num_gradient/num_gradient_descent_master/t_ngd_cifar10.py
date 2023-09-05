@@ -168,7 +168,6 @@ def test_classifier(h, w, x, preprocessed=False, return_class_index=False, retur
 
 
 
-
     #img_tensor = preprocess_image(h, w, x)
     #save_img(img_tensor, count=0)
 

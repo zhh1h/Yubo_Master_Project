@@ -256,7 +256,7 @@ def linearize_pixels(img):
     x = np.copy(np.asarray(img))
     h, w, c = x.shape
     img_array = x.reshape(h*w*c).astype('float64')
-    img_array /= 255
+    #img_array /= 255
     return h, w, img_array
 
 

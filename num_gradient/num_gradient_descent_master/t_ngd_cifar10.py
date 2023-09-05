@@ -277,14 +277,14 @@ def linearize_pixels(img):
 
 if args.input_pic:
         #print("There is input pic")
-        net.eval()
+        #net.eval()
         img = Image.open(args.input_pic)
         h, w, img_array = linearize_pixels(img)
 
-        #with torch.autograd.profiler.profile(use_cuda=True) as prof:
-        #import pyprof
-        #with torch.autograd.profiler.emit_nvtx():
-            #net.eval()
+        # with torch.autograd.profiler.profile(use_cuda=True) as prof:
+        #     import pyprof
+        with torch.autograd.profiler.emit_nvtx():
+            net.eval()
         test_classifier(h, w, img_array)
         #print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
         #print(prof)

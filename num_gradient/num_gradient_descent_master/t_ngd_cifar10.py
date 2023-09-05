@@ -159,11 +159,11 @@ def save_img(img, count=None):
 
 
 #@profile
-def test_classifier(h, w, x,  return_class_index=False, return_confidence=False):
-    # if not preprocessed:
-    img_tensor = preprocess_image(h, w, x)
-    # else:
-    #     img_tensor = x  # 如果已经预处理，直接使用
+def test_classifier(h, w, x, preprocessed = False, return_class_index=False, return_confidence=False):
+    if not preprocessed:
+        img_tensor = preprocess_image(h, w, x)
+    else:
+        img_tensor = x  # 如果已经预处理，直接使用
 
 
 
@@ -260,7 +260,7 @@ def create_f(h, w, target):
 #     return h, w, img_array
 
 def linearize_pixels(img):
-    x = np.copy(np.asarray(img))  # 保持为 uint8 类型
+    x = np.copy(np.asarray(img))
     h, w, c = x.shape
     img_array = x.reshape(h * w * c).astype('float64')  # 确保仍然是 uint8 类型
     return h, w, img_array

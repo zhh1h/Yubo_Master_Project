@@ -252,15 +252,33 @@ def create_f(h, w, target):
 
 
 
+# def linearize_pixels(img):
+#     x = np.copy(np.asarray(img))
+#     h, w, c = x.shape
+#     img_array = x.reshape(h*w*c).astype('float64')
+#     #img_array /= 255
+#     return h, w, img_array
+
+
 def linearize_pixels(img):
-    x = np.copy(np.asarray(img))
+    # 将图像转换为 NumPy 数组
+    x = np.array(img)
+
+    # 获取图像的维度
     h, w, c = x.shape
-    img_array = x.reshape(h*w*c).astype('float64')
-    #img_array /= 255
+
+    # 确保数据类型和范围与其他预处理步骤相同
+    # 在这里，我假设其他预处理步骤需要 [0, 1] 范围的 float64 类型。
+    # 如果其他预处理步骤使用的是 [0, 255] 范围的 uint8 类型，那么这里就不需要除以 255。
+    x = x.astype('float64') / 255.0
+
+    # 按照（channel, height, width）的顺序重塑数组
+    x = np.transpose(x, (2, 0, 1))
+
+    # 展平数组
+    img_array = x.ravel()
+
     return h, w, img_array
-
-
-
 
 
 

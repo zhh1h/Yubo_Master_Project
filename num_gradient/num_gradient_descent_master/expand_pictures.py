@@ -35,6 +35,7 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
     predicted_class = test_classifier(h, w, img_tensor, preprocessed=True)
     print(f"新图像的预测类别：{predicted_class}")
 
+
 # 使用 linearize_pixels 函数处理原始图像，并得到高度 h，宽度 w，和一维数组 img_array
 your_original_image = Image.open("./output.jpg")  # 这里使用您自己的图像路径
 h, w, img_array = linearize_pixels(your_original_image)

@@ -237,6 +237,7 @@ def create_f(h, w, target):
         save_transform(h, w, x, save_img)
         img_tensor = preprocess_image(h, w, x)
         #img_tensor = save_transform(h, w, x, save_img)
+        net.eval()
         output = net(img_tensor.unsqueeze(dim=0))
         output = F.softmax(output[0], dim=0)
         if check_prediction:

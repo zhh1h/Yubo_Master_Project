@@ -159,11 +159,11 @@ def save_img(img, count=None):
 
 
 #@profile
-def test_classifier(h, w, x, preprocessed=False, return_class_index=False, return_confidence=False):
-    if not preprocessed:
-        img_tensor = preprocess_image(h, w, x)
-    else:
-        img_tensor = x  # 如果已经预处理，直接使用
+def test_classifier(h, w, x,  return_class_index=False, return_confidence=False):
+    # if not preprocessed:
+    img_tensor = preprocess_image(h, w, x)
+    # else:
+    #     img_tensor = x  # 如果已经预处理，直接使用
 
 
 
@@ -285,7 +285,7 @@ if args.input_pic:
         #     import pyprof
         with torch.autograd.profiler.emit_nvtx():
             net.eval()
-        test_classifier(h, w, img_array,preprocessed=False)
+        test_classifier(h, w, img_array)
         #print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
         #print(prof)
 

@@ -285,7 +285,7 @@ if args.input_pic:
         #     import pyprof
         with torch.autograd.profiler.emit_nvtx():
             net.eval()
-        test_classifier(h, w, img_array,preprocessed=False)
+        test_classifier(h, w, img_array,preprocessed=True)
         #print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
         #print(prof)
 

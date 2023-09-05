@@ -310,6 +310,7 @@ if args.input_pic:
                 print(f"gradient time: {time_interval} 秒")
             #if ((test_classifier(h, w, img_array)) == classes.index(args.target)) and (create_f(h, w, img_array) >= 0.5):
             #if create_f(h, w, classes.index(args.target)) >= 0.5:
+            test_classifier(h, w, img_array)
             final_time= time.time()
             final_interval = final_time - start_time0
             print(f"final time interval: {final_interval} 秒")

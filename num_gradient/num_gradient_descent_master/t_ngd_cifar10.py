@@ -58,9 +58,9 @@ classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship'
 transform_fn = transforms.Compose([
     transforms.Resize(32),
     transforms.CenterCrop(32),
-    transforms.ToTensor()])#,
-#	transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
-#])
+    transforms.ToTensor(),
+	transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+])
 #device='cuda:0'
 device='cuda'
 
@@ -197,38 +197,38 @@ def test_classifier(h, w, x, preprocessed = False, return_class_index=False, ret
 
 
 def save_transform(h, w, x, save_img=None):
-    if isinstance(x, torch.Tensor):
-        x = x.to(torch.uint8).cpu().numpy()
-
-        # 将图像数组重塑为 (h, w, 3)
-    img_data = x.reshape((h, w, 3)).astype('uint8')
-
-    # 使用PIL创建图像
-    img_to_save = Image.fromarray(img_data, 'RGB')
-
-    # 保存图像
-    img_to_save.save('output.jpg')
-
-    # 如果提供了save_img参数，以另一个名称保存图像
-    if save_img is not None:
-        img_to_save.save(f'imgs/output{save_img}.jpg')
-
-    return img_to_save  # 如果需要，也可以返回保存的图像
-    # #x *= 255
-    # #img = x.reshape((h, w, 3)).astype('uint8')
     # if isinstance(x, torch.Tensor):
-    #     img = x.to(torch.uint8).cpu().numpy().reshape((h, w, 3))
-    # else:  # x is a numpy ndarray
-    #     img = x.reshape((h, w, 3)).astype(np.uint8)
+    #     x = x.to(torch.uint8).cpu().numpy()
     #
+    #     # 将图像数组重塑为 (h, w, 3)
+    # img_data = x.reshape((h, w, 3)).astype('uint8')
     #
-    # img = Image.fromarray(img, mode='RGB')
-    # img.save('output.jpg')
-    # if save_img != None:
-    #     img.save('imgs/output{}.jpg'.format(save_img))
-    # img = Image.open('output.jpg')
-    # img = transform_fn(img)
-    # return img
+    # # 使用PIL创建图像
+    # img_to_save = Image.fromarray(img_data, 'RGB')
+    #
+    # # 保存图像
+    # img_to_save.save('output.jpg')
+    #
+    # # 如果提供了save_img参数，以另一个名称保存图像
+    # if save_img is not None:
+    #     img_to_save.save(f'imgs/output{save_img}.jpg')
+    #
+    # return img_to_save  # 如果需要，也可以返回保存的图像
+    x *= 255
+    img = x.reshape((h, w, 3)).astype('uint8')
+    if isinstance(x, torch.Tensor):
+        img = x.to(torch.uint8).cpu().numpy().reshape((h, w, 3))
+    else:  # x is a numpy ndarray
+        img = x.reshape((h, w, 3)).astype(np.uint8)
+
+
+    img = Image.fromarray(img, mode='RGB')
+    img.save('output.jpg')
+    if save_img != None:
+        img.save('imgs/output{}.jpg'.format(save_img))
+    img = Image.open('output.jpg')
+    img = transform_fn(img)
+    return img
 
 def create_f(h, w, target):
     def f(x, save_img=None, check_prediction=False):

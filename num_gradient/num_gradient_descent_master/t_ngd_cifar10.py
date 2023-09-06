@@ -113,14 +113,20 @@ print('Resumed')
 criterion = nn.CrossEntropyLoss()
 
 net.eval()
-def preprocess_image(h, w, x):
-    x = x.astype('uint8')
-    pixels = x.reshape((h, w, 3))
-    img = Image.fromarray(pixels, mode='RGB')
-    # ... any other preprocessing steps that you had in test_classifier should go here ...
-    # For example:
-    #img = save_transform(save_img=None)
-    img_tensor = torch.Tensor(np.array(img)).permute(2, 0, 1) / 255.0
+# def preprocess_image(h, w, x):
+#     x = x.astype('uint8')
+#     pixels = x.reshape((h, w, 3))
+#     img = Image.fromarray(pixels, mode='RGB')
+#     # ... any other preprocessing steps that you had in test_classifier should go here ...
+#     # For example:
+#     #img = save_transform(save_img=None)
+#     img_tensor = torch.Tensor(np.array(img)).permute(2, 0, 1) / 255.0
+#     return img_tensor
+
+def preprocess_with_transform_fn(h, w, x):
+    x = x.astype('uint8').reshape((h, w, 3))
+    img = Image.fromarray(x, mode='RGB')
+    img_tensor = transform_fn(img)
     return img_tensor
 
 
@@ -161,12 +167,9 @@ def save_img(img, count=None):
 #@profile
 def test_classifier(h, w, x, preprocessed = False, return_class_index=False, return_confidence=False):
     if not preprocessed:
-        img_tensor = preprocess_image(h, w, x)
+        img_tensor = preprocess_with_transform_fn(h, w, x)  # 使用新的预处理函数
     else:
-        img_tensor = x  # 如果已经预处理，直接使用
-
-
-
+        img_tensor = x
 
     #img_tensor = preprocess_image(h, w, x)
     #save_img(img_tensor, count=0)

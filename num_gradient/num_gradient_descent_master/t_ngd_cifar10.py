@@ -214,8 +214,8 @@ def save_transform(h, w, x, save_img=None):
     #     img_to_save.save(f'imgs/output{save_img}.jpg')
     #
     # return img_to_save  # 如果需要，也可以返回保存的图像
-    x *= 255
-    img = x.reshape((h, w, 3)).astype('uint8')
+    #x *= 255
+    #img = x.reshape((h, w, 3)).astype('uint8')
     if isinstance(x, torch.Tensor):
         img = x.to(torch.uint8).cpu().numpy().reshape((h, w, 3))
     else:  # x is a numpy ndarray

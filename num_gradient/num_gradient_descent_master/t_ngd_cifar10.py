@@ -123,11 +123,11 @@ net.eval()
 #     img_tensor = torch.Tensor(np.array(img)).permute(2, 0, 1) / 255.0
 #     return img_tensor
 
-def preprocess_with_transform_fn(h, w, x):
-    x = x.astype('uint8').reshape((h, w, 3))
-    img = Image.fromarray(x, mode='RGB')
-    img_tensor = transform_fn(img)
-    return img_tensor
+# def preprocess_with_transform_fn(h, w, x):
+#     x = x.astype('uint8').reshape((h, w, 3))
+#     img = Image.fromarray(x, mode='RGB')
+#     img_tensor = transform_fn(img)
+#     return img_tensor
 
 
 def test(f=net):
@@ -174,7 +174,7 @@ def test_classifier(h, w, x, preprocessed = False, return_class_index=False, ret
     #     img_tensor = x
 
     #img_tensor = preprocess_image(h, w, x)
-    #save_img(img_tensor, count=0)
+
     pixels = x.reshape((h, w, 3)).astype('uint8')
     img = Image.fromarray(pixels, mode='RGB')
     img = transform_fn(img)
@@ -189,6 +189,7 @@ def test_classifier(h, w, x, preprocessed = False, return_class_index=False, ret
 
     output = net(img_cuda.unsqueeze(dim=0))
     output_softmax = F.softmax(output[0], dim=0)
+    save_img(img, count=0)
 
     # 其他部分保持不变
     value, index = torch.max(output_softmax, 0)

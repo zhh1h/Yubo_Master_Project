@@ -237,23 +237,33 @@ def save_transform(h, w, x, save_img=None):
     img = transform_fn(img)
     return img
 
+# def create_f(h, w, target):
+#     def f(x, save_img=None, check_prediction=False):
+#         # Preprocess the image
+#         #pixels = save_transform(h, w, x, save_img)
+#         save_transform(h, w, x, save_img)
+#         #img_tensor = preprocess_with_transform_fn()
+#         #img_tensor = save_transform(h, w, x, save_img)
+#         net.eval()
+#         output = net(img_tensor.unsqueeze(dim=0))
+#         output = F.softmax(output[0], dim=0)
+#         if check_prediction:
+#             conf_predicted, predicted = torch.max(output, 0)
+#             print("target: {} predicted: {}".format(classes[target], classes[predicted]))
+#             if predicted != target:
+#                 return 0
+#         return output[target].item()
+#     return f
+
 def create_f(h, w, target):
-    def f(x, save_img=None, check_prediction=False):
-        # Preprocess the image
-        #pixels = save_transform(h, w, x, save_img)
-        save_transform(h, w, x, save_img)
-        img_tensor = preprocess_with_transform_fn
-        #img_tensor = save_transform(h, w, x, save_img)
-        net.eval()
-        output = net(img_tensor.unsqueeze(dim=0))
-        output = F.softmax(output[0], dim=0)
-        if check_prediction:
-            conf_predicted, predicted = torch.max(output, 0)
-            print("target: {} predicted: {}".format(classes[target], classes[predicted]))
-            if predicted != target:
-                return 0
-        return output[target].item()
-    return f
+ 	def f(x, save_img=None):
+ 		pixels = save_transform(h, w, x, save_img)
+ 		pixels_cuda = pixels.cuda()
+ 		output = net(pixels_cuda.unsqueeze(dim=0))
+ 		output = F.softmax(output[0], dim=0)
+ 		return output[target].item()
+ 	#return lambda x: f(x, target)
+ 	return f
 
 
 

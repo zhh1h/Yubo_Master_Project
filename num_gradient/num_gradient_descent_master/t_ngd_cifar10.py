@@ -238,7 +238,7 @@ def create_f(h, w, target):
         # Preprocess the image
         #pixels = save_transform(h, w, x, save_img)
         save_transform(h, w, x, save_img)
-        img_tensor = preprocess_image(h, w, x)
+        img_tensor = preprocess_with_transform_fn
         #img_tensor = save_transform(h, w, x, save_img)
         net.eval()
         output = net(img_tensor.unsqueeze(dim=0))

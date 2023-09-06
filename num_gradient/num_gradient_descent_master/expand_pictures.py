@@ -3,7 +3,9 @@ import numpy as np
 from t_ngd_cifar10 import test_classifier, linearize_pixels
 import torch
 #from t_ngd_cifar10 import net
-from t_ngd_cifar10 import preprocess_image
+#from t_ngd_cifar10 import preprocess_image
+from t_ngd_cifar10 import preprocess_with_transform_fn
+
 
 
 # # 预处理图像函数
@@ -25,7 +27,8 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
     new_image = np.clip(new_image, 0, 255).astype(np.uint8)
 
     # 预处理新图像
-    img_tensor = preprocess_image(h, w, new_image)
+    #img_tensor = preprocess_image(h, w, new_image)
+    img_tensor = preprocess_with_transform_fn(h, w, new_image)
 
     # 保存新图像
     img_path = f"new_Image{std_deviation}.jpg"

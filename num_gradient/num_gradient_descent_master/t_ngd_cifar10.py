@@ -168,6 +168,8 @@ def save_img(img, count=None):
 def test_classifier(h, w, x, preprocessed = False, return_class_index=False, return_confidence=False):
     if not preprocessed:
         img_tensor = preprocess_with_transform_fn(h, w, x)  # 使用新的预处理函数
+        print(type(img_tensor))
+
     else:
         img_tensor = x
 
@@ -176,6 +178,8 @@ def test_classifier(h, w, x, preprocessed = False, return_class_index=False, ret
 
     # 使用预处理后的张量进行分类
     net.eval()
+    # print(type(img_tensor))
+
     output = net(img_tensor.unsqueeze(dim=0))
     output_softmax = F.softmax(output[0], dim=0)
 

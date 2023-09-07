@@ -40,6 +40,8 @@ import torch.optim as optim
 parser = argparse.ArgumentParser(description='CIFAR10 Security Attacks')
 parser.add_argument('--input-pic', '-i', type=str, help='Input image', required=False)
 parser.add_argument('--target', type=str, help='Target class', required=False)
+parser.add_argument('--resume', '-r', action='store_true',
+                    help='resume from checkpoint')
 args = parser.parse_args()
 #
 #
@@ -178,6 +180,7 @@ def test_classifier(h, w, x, preprocessed = False, return_class_index=False, ret
     pixels = x.reshape((h, w, 3)).astype('uint8')
     img = Image.fromarray(pixels, mode='RGB')
     img = transform_fn(img)
+    save_img(img, count=0)
     img_cuda = img.cuda()
     # 	print(img)
     #
@@ -189,7 +192,7 @@ def test_classifier(h, w, x, preprocessed = False, return_class_index=False, ret
 
     output = net(img_cuda.unsqueeze(dim=0))
     output_softmax = F.softmax(output[0], dim=0)
-    save_img(img, count=0)
+    # save_img(img, count=0)
 
     # 其他部分保持不变
     value, index = torch.max(output_softmax, 0)
@@ -291,7 +294,7 @@ def create_f(h, w, target):
 def linearize_pixels(img):
     x = np.copy(np.asarray(img))
     h, w, c = x.shape
-    img_array = x.reshape(h * w * c).astype('float64')  # 确保仍然是 uint8 类型
+    img_array = x.reshape(h * w * c).astype('float64')
     return h, w, img_array
 
 

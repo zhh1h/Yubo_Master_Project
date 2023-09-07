@@ -249,12 +249,12 @@ def create_f(h, w, target):
     def f(x, save_img=None, check_prediction=False):
         # Preprocess the image
         #pixels = save_transform(h, w, x, save_img)
-        img_tensor = save_transform(h, w, x, save_img)
-        img_tensor = img_tensor.cuda()
+        pixels = save_transform(h, w, x, save_img)
+        pixels_cuda = pixels.cuda()
         #img_tensor = preprocess_with_transform_fn()
         #img_tensor = save_transform(h, w, x, save_img)
         net.eval()
-        output = net(img_tensor.unsqueeze(dim=0))
+        output = net(pixels_cuda.unsqueeze(dim=0))
         output = F.softmax(output[0], dim=0)
         if check_prediction:
             conf_predicted, predicted = torch.max(output, 0)

@@ -238,11 +238,12 @@ def save_transform(h, w, x, save_img=None):
 
 
     img = Image.fromarray(img, mode='RGB')
+    img = transform_fn(img)
     img.save('output.jpg')
     if save_img != None:
         img.save('imgs/output{}.jpg'.format(save_img))
-    img = Image.open('output.jpg')
-    img = transform_fn(img)
+    #img = Image.open('output.jpg')
+    #img = transform_fn(img)
     return img
 
 def create_f(h, w, target):

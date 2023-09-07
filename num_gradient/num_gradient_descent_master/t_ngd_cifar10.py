@@ -294,7 +294,8 @@ def create_f(h, w, target):
 def linearize_pixels(img):
     x = np.copy(np.asarray(img))
     h, w, c = x.shape
-    img_array = x.reshape(h * w * c).astype('float32')
+    #img_array = x.reshape(h * w * c).astype('float64')
+    img_array = x.reshape(h * w * c).astype(np.uint8)
     return h, w, img_array
 
 

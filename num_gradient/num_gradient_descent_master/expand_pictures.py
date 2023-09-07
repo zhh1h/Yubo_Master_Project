@@ -41,7 +41,7 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
     print(f"新图像的预测类别：{predicted_class}")
 
 # 使用 linearize_pixels 函数处理原始图像，并得到高度 h，宽度 w，和一维数组 img_array
-your_original_image = Image.open("./output.jpg")  # 这里使用您自己的图像路径
+your_original_image = Image.open("./output.png")  # 这里使用您自己的图像路径
 h, w, img_array = linearize_pixels(your_original_image)
 
 # 使用 generate_image_with_noise_and_classify 函数添加噪声并分类

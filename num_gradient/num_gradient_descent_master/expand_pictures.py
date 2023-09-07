@@ -4,7 +4,7 @@ from t_ngd_cifar10 import test_classifier, linearize_pixels
 import torch
 #from t_ngd_cifar10 import net
 #from t_ngd_cifar10 import preprocess_image
-from t_ngd_cifar10 import preprocess_with_transform_fn
+#from t_ngd_cifar10 import preprocess_with_transform_fn
 
 
 
@@ -28,14 +28,16 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
 
     # 预处理新图像
     #img_tensor = preprocess_image(h, w, new_image)
-    img_tensor = preprocess_with_transform_fn(h, w, new_image)
+    #img_tensor = preprocess_with_transform_fn(h, w, new_image)
+
 
     # 保存新图像
     img_path = f"new_Image{std_deviation}.jpg"
     Image.fromarray(new_image, 'RGB').save(img_path)
 
     # 对新图像进行分类
-    predicted_class = test_classifier(h, w, img_tensor,preprocessed = True)
+    h, w, img_array = linearize_pixels(new_image)
+    predicted_class = test_classifier(h, w, img_array)
     print(f"新图像的预测类别：{predicted_class}")
 
 # 使用 linearize_pixels 函数处理原始图像，并得到高度 h，宽度 w，和一维数组 img_array

@@ -26,11 +26,6 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
     new_image = original_image + noise
     new_image = np.clip(new_image, 0, 255).astype(np.uint8)
 
-    # 预处理新图像
-    #img_tensor = preprocess_image(h, w, new_image)
-    #img_tensor = preprocess_with_transform_fn(h, w, new_image)
-
-
     # 保存新图像
     img_path = f"new_Image{std_deviation}.png"
     Image.fromarray(new_image, 'RGB').save(img_path)
@@ -39,11 +34,27 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
     h, w, img_array = linearize_pixels(new_image)
     predicted_class = test_classifier(h, w, img_array)
     print(f"新图像的预测类别：{predicted_class}")
+    return predicted_class
+
 
 # 使用 linearize_pixels 函数处理原始图像，并得到高度 h，宽度 w，和一维数组 img_array
 your_original_image = Image.open("./output.png")  # 这里使用您自己的图像路径
 h, w, img_array = linearize_pixels(your_original_image)
 
-# 使用 generate_image_with_noise_and_classify 函数添加噪声并分类
-std_deviation = 110  # 这个值可以根据需要进行调整
-generate_image_with_noise_and_classify(h, w, img_array, std_deviation)
+# 获取原图像的分类
+original_class = test_classifier(h, w, img_array)
+print(f"原图像的预测类别：{original_class}")
+
+# 初始化标准差
+std_deviation = 0
+
+# 循环以找出导致分类改变的最小标准差
+while True:
+    print(f"测试标准差：{std_deviation}")
+    new_class = generate_image_with_noise_and_classify(h, w, img_array, std_deviation)
+
+    if new_class != original_class:
+        print(f"在标准差为 {std_deviation} 时，分类改变为 {new_class}")
+        break  # 结束循环
+
+    std_deviation += 10  # 或者您也可以选择其他的增加幅度，比如 += 5，根据实际情况调整

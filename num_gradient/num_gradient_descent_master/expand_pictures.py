@@ -1,6 +1,7 @@
 from PIL import Image
 import numpy as np
 from t_ngd_cifar10 import test_classifier, linearize_pixels
+import  os
 import torch
 #from t_ngd_cifar10 import net
 #from t_ngd_cifar10 import preprocess_image
@@ -15,6 +16,9 @@ import torch
 #     img = Image.fromarray(pixels, mode='RGB')
 #     img_tensor = torch.Tensor(np.array(img)).permute(2, 0, 1) / 255.0
 #     return img_tensor
+
+if not os.path.exists('std_deviation'):
+    os.makedirs('std_deviation')
 
 
 # 修改后的 generate_image_with_global_noise 函数，添加了保存图片和分类功能
@@ -35,14 +39,13 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
     predicted_class = test_classifier(h, w, img_array)
     print(f"新图像的预测类别：{predicted_class}")
 
-    img_path = f"new_Image{std_deviation}{predicted_class}.png"
+    img_path = f"std_deviation/new_Image_{std_deviation}_{predicted_class}.png"
     Image.fromarray(new_image, 'RGB').save(img_path)
-
     return predicted_class
 
 
 # 使用 linearize_pixels 函数处理原始图像，并得到高度 h，宽度 w，和一维数组 img_array
-your_original_image = Image.open("./std_deviation/output.png")  # 这里使用您自己的图像路径
+your_original_image = Image.open("./output.png")  # 这里使用您自己的图像路径
 h, w, img_array = linearize_pixels(your_original_image)
 
 # 获取原图像的分类

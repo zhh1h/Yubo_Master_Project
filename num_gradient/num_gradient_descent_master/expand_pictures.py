@@ -32,7 +32,7 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
 
 
     # 保存新图像
-    img_path = f"new_Image{std_deviation}.jpg"
+    img_path = f"new_Image{std_deviation}.png"
     Image.fromarray(new_image, 'RGB').save(img_path)
 
     # 对新图像进行分类

@@ -64,4 +64,4 @@ while True:
         print(f"在标准差为 {std_deviation} 时，分类改变为 {new_class}")
         break  # 结束循环
 
-    std_deviation += 10  # 或者您也可以选择其他的增加幅度，比如 += 5，根据实际情况调整
+    std_deviation += 5  # 或者您也可以选择其他的增加幅度，比如 += 5，根据实际情况调整

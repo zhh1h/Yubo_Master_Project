@@ -64,4 +64,4 @@ while True:
         print(f"When the standard deviation is {std_deviation}, the class changes to {new_class}")
         break  # 结束循环
 
-    std_deviation += 5  # 或者您也可以选择其他的增加幅度，比如 += 5，根据实际情况调整
+    std_deviation += 1  # 或者您也可以选择其他的增加幅度，比如 += 5，根据实际情况调整

@@ -37,7 +37,7 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
     # 对新图像进行分类
     h, w, img_array = linearize_pixels(new_image)
     predicted_class = test_classifier(h, w, img_array)
-    print(f"新图像的预测类别：{predicted_class}")
+    print(f"new image class：{predicted_class}")
 
     img_path = f"std_deviation/new_Image_129_{std_deviation}_{predicted_class}.png"
     Image.fromarray(new_image, 'RGB').save(img_path)
@@ -50,18 +50,18 @@ h, w, img_array = linearize_pixels(your_original_image)
 
 # 获取原图像的分类
 original_class = test_classifier(h, w, img_array)
-print(f"原图像的预测类别：{original_class}")
+print(f"original image class：{original_class}")
 
 # 初始化标准差
 std_deviation = 0
 
 # 循环以找出导致分类改变的最小标准差
 while True:
-    print(f"测试标准差：{std_deviation}")
+    print(f"test standard deviation：{std_deviation}")
     new_class = generate_image_with_noise_and_classify(h, w, img_array, std_deviation)
 
     if new_class != original_class:
-        print(f"在标准差为 {std_deviation} 时，分类改变为 {new_class}")
+        print(f"When the standard deviation is {std_deviation}, the class changes to {new_class}")
         break  # 结束循环
 
     std_deviation += 5  # 或者您也可以选择其他的增加幅度，比如 += 5，根据实际情况调整

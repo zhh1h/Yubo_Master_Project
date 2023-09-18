@@ -39,7 +39,7 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
     predicted_class = test_classifier(h, w, img_array)
     print(f"new image class：{predicted_class}")
 
-    img_path = f"std_deviation/new_Image_143_{std_deviation}_{predicted_class}.png"
+    img_path = f"std_deviation/new_Image_144_{std_deviation}_{predicted_class}.png"
     Image.fromarray(new_image, 'RGB').save(img_path)
     return predicted_class
 

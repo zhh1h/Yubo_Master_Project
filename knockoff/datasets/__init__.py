@@ -55,6 +55,7 @@ dataset_to_modelfamily = {
     'SVHN': 'cifar',
     'TinyImageNet200': 'cifar',
     'TinyImagesSubset': 'cifar',
+    'random_images': 'imagenet',
 
     # Imagenet
     'CUBS200': 'imagenet',
@@ -63,7 +64,7 @@ dataset_to_modelfamily = {
     'Diabetic5': 'imagenet',
     'ImageNet1k': 'imagenet',
     'ImageFolder': 'imagenet',
-    'random_images': 'imagenet'
+
 
 
 }

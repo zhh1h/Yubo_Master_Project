@@ -110,6 +110,8 @@ def main():
                         help='Destination directory to store transfer set', required=True)
     parser.add_argument('--budget', metavar='N', type=int, help='Size of transfer set to construct',
                         required=True)
+    parser.add_argument('--custom_query_path', type=str, help='Path to custom query dataset', default=None)
+
     parser.add_argument('--queryset', metavar='TYPE', type=str, help='Adversary\'s dataset (P_A(X))', required=True)
     parser.add_argument('--batch_size', metavar='TYPE', type=int, help='Batch size of queries', default=8)
     parser.add_argument('--root', metavar='DIR', type=str, help='Root directory for ImageFolder', default=None)
@@ -142,16 +144,36 @@ def main():
     # device = torch.device('cpu')
     # print(f'!!!!!!!!!!!!!!!!!!!!{torch.cuda.is_available()}!!!!!!!!!!!!!!!!!!!!!')
     # ----------- Set up queryset
-    queryset_name = params['queryset']
-    valid_datasets = datasets.__dict__.keys()
-    if queryset_name not in valid_datasets:
-        raise ValueError('Dataset not found. Valid arguments = {}'.format(valid_datasets))
-    modelfamily = datasets.dataset_to_modelfamily[queryset_name] if params['modelfamily'] is None else params['modelfamily']
-    transform = datasets.modelfamily_to_transforms[modelfamily]['test']
-    if queryset_name == 'ImageFolder':
-        assert params['root'] is not None, 'argument "--root ROOT" required for ImageFolder'
-        queryset = datasets.__dict__[queryset_name](root=params['root'], transform=transform)
+    # queryset_name = params['queryset']
+    # valid_datasets = datasets.__dict__.keys()
+    # if queryset_name not in valid_datasets:
+    #     raise ValueError('Dataset not found. Valid arguments = {}'.format(valid_datasets))
+    # modelfamily = datasets.dataset_to_modelfamily[queryset_name] if params['modelfamily'] is None else params['modelfamily']
+    # transform = datasets.modelfamily_to_transforms[modelfamily]['test']
+    # if queryset_name == 'ImageFolder':
+    #     assert params['root'] is not None, 'argument "--root ROOT" required for ImageFolder'
+    #     queryset = datasets.__dict__[queryset_name](root=params['root'], transform=transform)
+    # else:
+    #     queryset = datasets.__dict__[queryset_name](train=True, transform=transform)
+
+    if params['custom_query_path']:
+        from torchvision.datasets import ImageFolder
+        from torchvision import transforms
+        transform = transforms.Compose([
+    transforms.Resize(32),
+    transforms.CenterCrop(32),
+    transforms.ToTensor(),
+	transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+])
+        queryset = ImageFolder(root=params['custom_query_path'], transform=transform)
     else:
+        queryset_name = params['queryset']
+        valid_datasets = datasets.__dict__.keys()
+        if queryset_name not in valid_datasets:
+            raise ValueError('Dataset not found. Valid arguments = {}'.format(valid_datasets))
+        modelfamily = datasets.dataset_to_modelfamily[queryset_name] if params['modelfamily'] is None else params[
+            'modelfamily']
+        transform = datasets.modelfamily_to_transforms[modelfamily]['test']
         queryset = datasets.__dict__[queryset_name](train=True, transform=transform)
 
     # ----------- Initialize blackbox

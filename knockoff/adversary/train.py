@@ -60,7 +60,7 @@ class TransferSetImagePaths(ImageFolder):
         #print(f"Attempting to load image at: {path}")  # Debugging line
         # with open('new_Image_134_23150_truck.png', 'rb') as f:
         #     print("File can be opened.")
-        print(os.path.abspath('new_Image_134_23150_truck.png'))
+        #print(os.path.abspath('new_Image_134_23150_truck.png'))
         # img = self.loader(path)
         #path = self.imgs[index]
         img = self.loader(path)
@@ -191,17 +191,17 @@ def main():
     num_classes = transferset_samples[0][1].size(0)
     print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
-    # ----------- Clean up transfer (if necessary)
-    if params['argmaxed']:
-        new_transferset_samples = []
-        print('=> Using argmax labels (instead of posterior probabilities)')
-        for i in range(len(transferset_samples)):
-            x_i, y_i = transferset_samples[i]
-            argmax_k = y_i.argmax()
-            y_i_1hot = torch.zeros_like(y_i)
-            y_i_1hot[argmax_k] = 1.
-            new_transferset_samples.append((x_i, y_i_1hot))
-        transferset_samples = new_transferset_samples
+    # # ----------- Clean up transfer (if necessary)
+    # if params['argmaxed']:
+    #     new_transferset_samples = []
+    #     print('=> Using argmax labels (instead of posterior probabilities)')
+    #     for i in range(len(transferset_samples)):
+    #         x_i, y_i = transferset_samples[i]
+    #         argmax_k = y_i.argmax()
+    #         y_i_1hot = torch.zeros_like(y_i)
+    #         y_i_1hot[argmax_k] = 1.
+    #         new_transferset_samples.append((x_i, y_i_1hot))
+    #     transferset_samples = new_transferset_samples
 
     # ----------- Set up testset
     dataset_name = params['testdataset']

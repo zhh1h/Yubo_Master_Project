@@ -32,6 +32,7 @@ __maintainer__ = "Tribhuvanesh Orekondy"
 __email__ = "orekondy@mpi-inf.mpg.de"
 __status__ = "Development"
 
+torch.backends.cudnn.enabled = False
 
 class TransferSetImagePaths(ImageFolder):
     """TransferSet Dataset, for when images are stored as *paths*"""

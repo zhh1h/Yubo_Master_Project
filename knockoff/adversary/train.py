@@ -55,15 +55,17 @@ class TransferSetImagePaths(ImageFolder):
     def __getitem__(self, index):
         # path = self.samples[index][0]
         # target = self.samples[0][index]
-        path,target = self.samples[index]
-        print(os.path.abspath(path))
+        directory = "../../num_gradient/num_gradient_descent_master/std_deviation"  # 修改为你的图片目录
+        filename,target = self.samples[index]
+        full_path = os.path.join(directory, filename)
+        print(os.path.abspath(full_path))
         #print(f"Attempting to load image at: {path}")  # Debugging line
         # with open('new_Image_134_23150_truck.png', 'rb') as f:
         #     print("File can be opened.")
         #print(os.path.abspath('new_Image_134_23150_truck.png'))
         # img = self.loader(path)
         #path = self.imgs[index]
-        img = self.loader(path)
+        img = self.loader(full_path)
         if self.transform is not None:
             img = self.transform(img)
         target = self.targets[index]

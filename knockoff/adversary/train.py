@@ -41,11 +41,10 @@ class TransferSetImagePaths(ImageFolder):
     def __init__(self, samples, transform=None, target_transform=None):
         self.loader = default_loader
         self.extensions = IMG_EXTENSIONS
-        self.samples = np.array(samples)
+        self.samples = samples
+        self.targets = [s[1] for s in samples]
         self.transform = transform
         self.target_transform = target_transform
-        self.imgs = [s[0] for s in samples]
-        self.targets = [s[1] for s in samples]
 
     #     self.extensions = IMG_EXTENSIONS
     #     self.samples = samples

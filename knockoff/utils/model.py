@@ -65,7 +65,7 @@ def soft_cross_entropy(pred, soft_targets, weights=None):
         return torch.mean(torch.sum(- soft_targets * F.log_softmax(pred, dim=1), 1))
 
 
-def train_step(model, train_loader, criterion, optimizer, epoch, device, log_interval=10, writer=None):
+def train_step(model, train_loader, criterion, optimizer, epoch, device, log_interval=10, writer=1):
     model.train()
     train_loss = 0.
     correct = 0
@@ -123,7 +123,7 @@ def train_step(model, train_loader, criterion, optimizer, epoch, device, log_int
     return train_loss_batch, acc
 
 
-def test_step(model, test_loader, criterion, device, epoch=0., silent=False, writer=None):
+def test_step(model, test_loader, criterion, device, epoch=0., silent=False, writer=1):
     model.eval()
     test_loss = 0.
     correct = 0

@@ -58,7 +58,7 @@ class TransferSetImagePaths(ImageFolder):
         directory = "../../num_gradient/num_gradient_descent_master/std_deviation"  # 修改为你的图片目录
         filename,target = self.samples[index]
         full_path = os.path.join(directory, filename)
-        print(os.path.abspath(full_path))
+        #print(os.path.abspath(full_path))
         #print(f"Attempting to load image at: {path}")  # Debugging line
         # with open('new_Image_134_23150_truck.png', 'rb') as f:
         #     print("File can be opened.")

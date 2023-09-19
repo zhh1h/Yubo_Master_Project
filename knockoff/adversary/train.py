@@ -58,8 +58,9 @@ class TransferSetImagePaths(ImageFolder):
         # target = self.samples[0][index]
         path,target = self.samples[index]
         #print(f"Attempting to load image at: {path}")  # Debugging line
-        with open('new_Image_134_23150_truck.png', 'rb') as f:
-            print("File can be opened.")
+        # with open('new_Image_134_23150_truck.png', 'rb') as f:
+        #     print("File can be opened.")
+        print(os.path.abspath('new_Image_134_23150_truck.png'))
         # img = self.loader(path)
         #path = self.imgs[index]
         img = self.loader(path)

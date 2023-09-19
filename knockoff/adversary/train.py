@@ -20,7 +20,7 @@ from torchvision.transforms.functional import to_tensor
 
 import sys
 
-sys.path.append("/home/yubo/yubo_tem_code/knockoffnets")
+#sys.path.append("/home/yubo/yubo_tem_code/knockoffnets")
 
 import knockoff.config as cfg
 import knockoff.utils.model as model_utils

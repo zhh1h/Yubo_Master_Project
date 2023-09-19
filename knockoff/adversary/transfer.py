@@ -51,6 +51,7 @@ class FlatDirectoryImageDataset(VisionDataset):
     def __init__(self, root, transform=None, target_transform=None):
         super(FlatDirectoryImageDataset, self).__init__(root, transform=transform, target_transform=target_transform)
         self.image_files = [f for f in os.listdir(root) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        self.data = self.image_files  # 或者其他适当的数据结构
 
     def __getitem__(self, index):
         img_name = self.image_files[index]

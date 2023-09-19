@@ -6,6 +6,7 @@ import argparse
 import sys
 import os.path as osp
 import os
+from torchvision.datasets import VisionDataset
 
 # get absolute path of current file from sys module
 # curPath = os.path.abspath(os.path.dirname(__file__))
@@ -43,6 +44,24 @@ __status__ = "Development"
 
 
 #torch.load('',map_location='cpu')
+
+class FlatDirectoryImageDataset(VisionDataset):
+    def __init__(self, root, transform=None, target_transform=None):
+        super(FlatDirectoryImageDataset, self).__init__(root, transform=transform, target_transform=target_transform)
+        self.image_files = [f for f in os.listdir(root) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+
+    def __getitem__(self, index):
+        img_name = self.image_files[index]
+        img_path = os.path.join(self.root, img_name)
+        with open(img_path, 'rb') as f:
+            img = Image.open(f).convert('RGB')
+        if self.transform is not None:
+            img = self.transform(img)
+        return img, 0
+
+    def __len__(self):
+        return len(self.image_files)
+
 class RandomAdversary(object):
     def __init__(self, blackbox, queryset, batch_size=8):
         self.blackbox = blackbox
@@ -157,15 +176,14 @@ def main():
     #     queryset = datasets.__dict__[queryset_name](train=True, transform=transform)
 
     if params['custom_query_path']:
-        from torchvision.datasets import ImageFolder
         from torchvision import transforms
         transform = transforms.Compose([
-    transforms.Resize(32),
-    transforms.CenterCrop(32),
-    transforms.ToTensor(),
-	transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
-])
-        queryset = ImageFolder(root=params['custom_query_path'], transform=transform)
+            transforms.Resize(32),
+            transforms.CenterCrop(32),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ])
+        queryset = FlatDirectoryImageDataset(root=params['custom_query_path'], transform=transform)
     else:
         queryset_name = params['queryset']
         valid_datasets = datasets.__dict__.keys()

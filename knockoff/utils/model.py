@@ -59,6 +59,9 @@ def get_net(model_name, n_output_classes=1000, **kwargs):
 
 
 def soft_cross_entropy(pred, soft_targets, weights=None):
+    soft_targets = soft_targets.to(torch.float32)
+    pred = pred.to(torch.float32)
+
     if weights is not None:
         return torch.mean(torch.sum(- soft_targets * F.log_softmax(pred, dim=1) * weights, 1))
     else:

@@ -60,7 +60,7 @@ class TransferSetImagePaths(ImageFolder):
         #print(f"Attempting to load image at: {path}")  # Debugging line
         # with open('new_Image_134_23150_truck.png', 'rb') as f:
         #     print("File can be opened.")
-        print(os.path.abspath('new_Image_134_23150_truck.png'))
+        #print(os.path.abspath('new_Image_134_23150_truck.png'))
         # img = self.loader(path)
         #path = self.imgs[index]
         img = self.loader(path)
@@ -184,6 +184,8 @@ def main():
 
     # ----------- Set up transferset
     transferset_path = osp.join(model_dir, 'transferset.pickle')
+    print(f"Model directory is: {model_dir}")
+    print(f"Transferset path is: {transferset_path}")
     with open(transferset_path, 'rb') as rf:
         transferset_samples = pickle.load(rf)
     num_classes = transferset_samples[0][1].size(0)

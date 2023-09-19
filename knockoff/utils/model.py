@@ -65,7 +65,7 @@ def soft_cross_entropy(pred, soft_targets, weights=None):
         return torch.mean(torch.sum(- soft_targets * F.log_softmax(pred, dim=1), 1))
 
 
-def train_step(model, train_loader, criterion, optimizer, epoch, device, log_interval=10, writer=1):
+def train_step(model, train_loader, criterion, optimizer, epoch, device, log_interval=10, writer=None):
     model.train()
     train_loss = 0.
     correct = 0
@@ -112,7 +112,7 @@ def train_step(model, train_loader, criterion, optimizer, epoch, device, log_int
                 exact_epoch, batch_idx * len(inputs), len(train_loader.dataset), 100. * batch_idx / len(train_loader),
                 loss.item(), acc, correct, total))
 
-        if writer is not None:
+        if writer is None:
             writer.add_scalar('Loss/train', loss.item(), exact_epoch)
             writer.add_scalar('Accuracy/train', acc, exact_epoch)
 
@@ -123,7 +123,7 @@ def train_step(model, train_loader, criterion, optimizer, epoch, device, log_int
     return train_loss_batch, acc
 
 
-def test_step(model, test_loader, criterion, device, epoch=0., silent=False, writer=1):
+def test_step(model, test_loader, criterion, device, epoch=0., silent=False, writer=None):
     model.eval()
     test_loss = 0.
     correct = 0
@@ -163,7 +163,7 @@ def test_step(model, test_loader, criterion, device, epoch=0., silent=False, wri
         print('[Test]  Epoch: {}\tLoss: {:.6f}\tAcc: {:.1f}% ({}/{})'.format(epoch, test_loss, acc,
                                                                              correct, total))
 
-    if writer is not None:
+    if writer is None:
         writer.add_scalar('Loss/test', test_loss, epoch)
         writer.add_scalar('Accuracy/test', acc, epoch)
 

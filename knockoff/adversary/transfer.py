@@ -7,6 +7,8 @@ import sys
 import os.path as osp
 import os
 from torchvision.datasets import VisionDataset
+from PIL import Image
+
 
 # get absolute path of current file from sys module
 # curPath = os.path.abspath(os.path.dirname(__file__))

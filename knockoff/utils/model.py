@@ -112,7 +112,7 @@ def train_step(model, train_loader, criterion, optimizer, epoch, device, log_int
                 exact_epoch, batch_idx * len(inputs), len(train_loader.dataset), 100. * batch_idx / len(train_loader),
                 loss.item(), acc, correct, total))
 
-        if writer is None:
+        if writer is not None:
             writer.add_scalar('Loss/train', loss.item(), exact_epoch)
             writer.add_scalar('Accuracy/train', acc, exact_epoch)
 
@@ -163,7 +163,7 @@ def test_step(model, test_loader, criterion, device, epoch=0., silent=False, wri
         print('[Test]  Epoch: {}\tLoss: {:.6f}\tAcc: {:.1f}% ({}/{})'.format(epoch, test_loss, acc,
                                                                              correct, total))
 
-    if writer is None:
+    if writer is not None:
         writer.add_scalar('Loss/test', test_loss, epoch)
         writer.add_scalar('Accuracy/test', acc, epoch)
 
@@ -249,20 +249,20 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
         if test_loader is not None:
             test_loss, test_acc = test_step(model, test_loader, criterion_train, device, epoch=epoch)
             best_test_acc = max(best_test_acc, test_acc)
-        #
-        # # Checkpoint
-        # if test_acc >= best_test_acc:
-        #     state = {
-        #         'epoch': epoch,
-        #         'arch': model.__class__,
-        #         'state_dict': model.state_dict(),
-        #         'best_acc': test_acc,
-        #         'optimizer': optimizer.state_dict(),
-        #         'created_on': str(datetime.now()),
-        #     }
-        #     torch.save(state, model_out_path)
 
-        # Log
+        # Checkpoint
+        if test_acc >= best_test_acc:
+            state = {
+                'epoch': epoch,
+                'arch': model.__class__,
+                'state_dict': model.state_dict(),
+                'best_acc': test_acc,
+                'optimizer': optimizer.state_dict(),
+                'created_on': str(datetime.now()),
+            }
+            torch.save(state, model_out_path)
+
+
         with open(log_path, 'a') as af:
             train_cols = [run_id, epoch, 'train', train_loss, train_acc, best_train_acc]
             af.write('\t'.join([str(c) for c in train_cols]) + '\n')

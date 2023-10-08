@@ -5,8 +5,9 @@ import time
 #
 #
 from knockoff.models.cifar import vgg19
-#import sys
-#sys.path.append("/home/yubo/yubo_tem_code/knockoffnets/num_gradient/master_1/pytorch_cifar_master/")
+import sys
+sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/models")
+sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/models/")
 # #from num_gradient.num_gradient_descent_master
 
 import torch
@@ -156,11 +157,11 @@ def test(f=net):
 def save_img(img, count=None):
     if not isinstance(img, (torch.Tensor, np.ndarray)):
         # 如果 img 已经是一个 PIL 图像，则直接保存
-        img.save(f'output{count}.jpg' if count is not None else 'output.jpg')
+        img.save(f'output{count}.png' if count is not None else 'output.png')
     else:
         # 否则，将其转换为 PIL 图像并保存
         img = transforms.ToPILImage()(img)
-        img.save(f'output{count}.jpg' if count is not None else 'output.jpg')
+        img.save(f'output{count}.png' if count is not None else 'output.png ')
 
 
 
@@ -245,7 +246,7 @@ def save_transform(h, w, x, save_img=None):
     img.save('output.png')
     img = transform_fn(img)
     if save_img != None:
-        img.save('imgs/output{}.jpg'.format(save_img))
+        img.save('imgs/output{}.png'.format(save_img))
     #img = Image.open('output.jpg')
     #img = transform_fn(img)
     return img
@@ -357,7 +358,7 @@ if args.input_pic:
                 #img_array = ngd.num_ascent(f, img_array)
                 #img_array = ngd.num_ascent_g(f, img_array)
                 #img_array = ngd.ppgd(f, img_array)
-            while f(img_array) <= 0.8:
+            while f(img_array) <= 0.9:
                 img_array = ngd.pppgd(f, img_array,num_steps = 10)
                 #img_array = ngd.pgd_d(f, img_array, epsilons=0.3, alpha=0.01, num_steps=5)
                 index = test_classifier(h,w,img_array)
@@ -371,7 +372,7 @@ if args.input_pic:
 
             # 使用 PIL 库保存图像
             final_img = Image.fromarray(reshaped_img_array, 'RGB')
-            final_img.save('output_final.jpg')
+            final_img.save('output_final.png')
             h, w, img_array = linearize_pixels(final_img)
             test_classifier(h, w, img_array)
             final_time= time.time()

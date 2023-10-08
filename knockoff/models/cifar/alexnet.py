@@ -2,6 +2,7 @@
 Without BN, the start learning rate should be 0.01
 (c) YANG, Wei 
 '''
+import torch
 import torch.nn as nn
 
 

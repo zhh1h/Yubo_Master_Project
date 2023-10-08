@@ -216,15 +216,21 @@ def pppgd(f, x, num_steps=100, initial_alpha=0.5, momentum=0.9):
     sign_data_grad = torch.sign(torch.from_numpy(grad))
     update = torch.zeros_like(sign_data_grad)
 
-
+    # if conf < 0.8:
     for i in range(num_steps):
-        x = torch.from_numpy(x)
-        update = momentum * update + alpha * sign_data_grad
-        x = x + update
-        x = x.detach().numpy()
-        conf = f(x)
-        print("Step {}, confidence {}".format(i + 1, conf))
-        alpha *= 0.99  # learning rate decayif conf >= 0.5: break
+        if conf < 0.9:
+
+            x = torch.from_numpy(x)
+            update = momentum * update + alpha * sign_data_grad
+            x = x + update
+            x = x.detach().numpy()
+            conf = f(x)
+            print("Step {}, confidence {}".format(i + 1, conf))
+            alpha *= 0.99
+            conf = f(x)# learning rate decayif conf >= 0.5: break
+        else:
+            #conf = f(x)
+            break
 
 
     conf = f(x)

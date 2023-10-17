@@ -46,6 +46,8 @@ __status__ = "Development"
 
 
 #torch.load('',map_location='cpu')
+torch.nn.Module.dump_patches = True
+
 
 class FlatDirectoryImageDataset(VisionDataset):
     def __init__(self, root, transform=None, target_transform=None):
@@ -100,6 +102,8 @@ class RandomAdversary(object):
                     self.idx_set = set(range(len(self.queryset)))
 
                 x_t = torch.stack([self.queryset[i][0] for i in idxs]).to(self.blackbox.device)
+                #print(x_t.is_contiguous())
+
                 y_t = self.blackbox(x_t).cpu()
 
                 if hasattr(self.queryset, 'samples'):

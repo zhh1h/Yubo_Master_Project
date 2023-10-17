@@ -29,7 +29,9 @@ class VGG(nn.Module):
         self._initialize_weights()
 
     def forward(self, x):
+        #print(x.is_contiguous())
         x = self.features(x)
+
         x = x.view(x.size(0), -1)
         x = self.classifier(x)
         return x

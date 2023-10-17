@@ -113,6 +113,7 @@ class Blackbox(object):
 
         with torch.no_grad():
             query_input = query_input.to(self.device)
+            #print(query_input.is_contiguous())
             query_output = self.__model(query_input)
 
             if isinstance(query_output, tuple):

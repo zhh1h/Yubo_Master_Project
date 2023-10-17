@@ -6,7 +6,7 @@ import time
 #
 from knockoff.models.cifar import vgg19
 import sys
-sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/models")
+# sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/models")
 sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/models/")
 # #from num_gradient.num_gradient_descent_master
 
@@ -107,7 +107,7 @@ checkpoint = torch.load('./checkpoint/ckpt.pth', map_location=torch.device('cuda
 #checkpoint = torch.load('./checkpoint/ckpt_vgg19.t9', map_location=torch.device('cuda'))
 #checkpoint = torch.load('./checkpoint/ckpt_googlenet.cpt', map_location=torch.device('cuda'))
 
-print(checkpoint)
+#print(checkpoint)
 net.load_state_dict(checkpoint['net'])
 est_acc = checkpoint['acc']
 print('Resumed')

@@ -91,7 +91,7 @@ def generate_image_with_noise_and_classify(h, w, img_array, std_deviation):
 
     # 如果类别与原始类别相同，则保存图像
     if predicted_class == original_class:
-        img_path = f"std_deviation/new_Image_235_{std_deviation}_{predicted_class}.png"
+        img_path = f"std_deviation/new_Image_41_{std_deviation}_{predicted_class}.png"
         Image.fromarray(new_image, 'RGB').save(img_path)
     return predicted_class
 

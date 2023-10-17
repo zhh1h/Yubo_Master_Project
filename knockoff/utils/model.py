@@ -174,7 +174,7 @@ def test_step(model, test_loader, criterion, device, epoch=0., silent=False, wri
 
 
 def train_model(model, trainset, out_path, batch_size=128, criterion_train=None, criterion_test=None, testset=None,
-                device=None, num_workers=50, lr=0.1, momentum=0.5, lr_step=30, lr_gamma=0.1, resume=None,
+                device=None, num_workers=1, lr=0.1, momentum=0.5, lr_step=30, lr_gamma=0.1, resume=None,
                 epochs=100, log_interval=100, weighted_loss=False, checkpoint_suffix='', optimizer=None, scheduler=None,
                 writer=None, **kwargs):
     if device is None:

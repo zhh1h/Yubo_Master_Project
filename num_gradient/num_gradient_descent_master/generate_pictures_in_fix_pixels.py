@@ -17,10 +17,10 @@ if not os.path.exists('fix_pixels_images'):
     os.makedirs('fix_pixels_images')
 
 # 准备用于展示图片的 matplotlib 子图
-fig, axes = plt.subplots(1, 10, figsize=(20, 2))
+fig, axes = plt.subplots(16, 16, figsize=(20, 20))
 
 # 生成10张32*32的单色图片
-for i, pixel_value in enumerate(range(256, 247, -1)):
+for i, pixel_value in enumerate(range(1,257)):
     # 创建一个32*32*3的NumPy数组
     img_array = np.full((32, 32, 3), pixel_value, dtype=np.uint8)
 
@@ -33,10 +33,13 @@ for i, pixel_value in enumerate(range(256, 247, -1)):
     identified_class = test_classifier(h, w, img_array,return_class_index = True,return_confidence = True)
 
     # 展示图片
-    axes[i].imshow(img)
-    axes[i].set_title(f'Pixel: {pixel_value}')
-    axes[i].axis('off')
+    row = i // 16
+    col = i % 16
+    axes[row, col].imshow(img)
+    axes[row, col].set_title(f'Pixel: {pixel_value}')
+    axes[row, col].axis('off')
 
+plt.tight_layout()  # 调整子图间距
 plt.show()
 print("图片生成和保存完成！")
 

@@ -8,14 +8,14 @@ sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradi
 from t_ngd_cifar10 import test_classifier, linearize_pixels
 from models import *
 
-
+SAVE_PATH = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/030'
 def predictCaltech(h, w, img_array):
     original_image = img_array.reshape((h, w, 3)).astype('float64')
     h, w, img_array = linearize_pixels(original_image)
     predicted_class, confidence = test_classifier(h, w, img_array, return_confidence=True)
 
     result = {
-        "image_name": os.path.basename(img_path),
+        "image_name": os.path.splitext(os.path.basename(img_path))[0],
         "predicted_class": predicted_class,
         "confidence": confidence
     }
@@ -26,6 +26,10 @@ def predictCaltech(h, w, img_array):
         print(f"Confidence > 0.8: {confidence}")
     if confidence > 0.9:
         print(f"Confidence > 0.9: {confidence}")
+    if confidence > 0.85:
+        save_path = os.path.join(SAVE_PATH, f"{result['image_name']}.png")
+        processed_img = Image.fromarray(original_image.astype('uint8'), 'RGB')
+        processed_img.save(save_path)
     print("--------------")
 
     return result

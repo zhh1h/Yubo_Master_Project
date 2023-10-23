@@ -8,7 +8,7 @@ sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradi
 from t_ngd_cifar10 import test_classifier, linearize_pixels
 from models import *
 
-SAVE_PATH = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/030'
+SAVE_PATH = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/truck0'
 def predictCaltech(h, w, img_array):
     original_image = img_array.reshape((h, w, 3)).astype('float64')
     h, w, img_array = linearize_pixels(original_image)
@@ -20,13 +20,11 @@ def predictCaltech(h, w, img_array):
         "confidence": confidence
     }
 
-    print(f"Image name: {result['image_name']}")
-    print(f"Predicted class: {result['predicted_class']}")
-    if confidence > 0.8:
-        print(f"Confidence > 0.8: {confidence}")
-    if confidence > 0.9:
-        print(f"Confidence > 0.9: {confidence}")
-    if confidence > 0.85:
+    if confidence > 0.85 and predicted_class == "truck":
+        print(f"Image name: {result['image_name']}")
+        print(f"Predicted class: {result['predicted_class']}")
+        print(f"Confidence: {confidence}")
+
         save_path = os.path.join(SAVE_PATH, f"{result['image_name']}.png")
         processed_img = Image.fromarray(original_image.astype('uint8'), 'RGB')
         processed_img.save(save_path)
@@ -35,7 +33,7 @@ def predictCaltech(h, w, img_array):
     return result
 
 
-folder_path = '/home/yubo/yubo_tem_code/knockoffnets/data/256_ObjectCategories/030.canoe'
+folder_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/truck/valid/Truck'
 high_confidence_images = []
 
 for img_file in os.listdir(folder_path):
@@ -46,7 +44,7 @@ for img_file in os.listdir(folder_path):
 
         result = predictCaltech(h, w, img_array)
 
-        if result['confidence'] > 0.85:
+        if result['confidence'] > 0.85 and result['predicted_class'] == "truck":
             high_confidence_images.append(result)
 
 print("\nSummary of images with confidence greater than 0.85:")

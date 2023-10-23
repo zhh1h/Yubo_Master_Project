@@ -26,7 +26,7 @@ def resize_all_images(folder_a, folder_b):
 
 
 # 使用方法
-folder_a = '/home/yubo/yubo_tem_code/knockoffnets/data/256_ObjectCategories/056.dog'
-folder_b = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/056'
+folder_a = '/home/yubo/yubo_tem_code/knockoffnets/data/256_ObjectCategories/065.elk'
+folder_b = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/065'
 resize_all_images(folder_a, folder_b)
 

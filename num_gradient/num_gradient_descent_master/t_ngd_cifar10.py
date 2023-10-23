@@ -4,10 +4,10 @@ from __future__ import print_function
 import time
 #
 #
-from knockoff.models.cifar import vgg19
+#from knockoff.models.cifar import vgg19
 import sys
-# sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/models")
-sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/models/")
+#sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff")
+sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/")
 # #from num_gradient.num_gradient_descent_master
 
 import torch

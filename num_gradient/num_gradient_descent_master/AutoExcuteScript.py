@@ -1,7 +1,10 @@
 from __future__ import print_function
 import os
 import sys
-#sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/models")
+#sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/")
+sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/")
+sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/")
+
 #
 import os
 
@@ -9,17 +12,17 @@ import os
 targets = ["plane", "car", "bird", "cat", "deer", "dog", "frog", "horse", "ship"]
 
 # 在循环外部，初始化上一次的图片编号
-previous_i = 42
+previous_i = 58
 
 # 开始循环
-for i in range(43, 128):  # 从fix_pixels241到fix_pixels256
+for i in range(59, 128):  # 从fix_pixels241到fix_pixels256
 
     # 在循环开始时，替换上一次的图片编号
-    with open("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/expand_pictures.py", "r") as file:
+    with open("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/expand_pictures.py", "r",encoding='utf-8') as file:
         contents = file.read()
         contents = contents.replace(f'new_Image_{previous_i}_', f'new_Image_{i}_')
 
-    with open("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/expand_pictures.py", "w") as file:
+    with open("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/expand_pictures.py", "w",encoding='utf-8') as file:
         file.write(contents)
 
     image_path = f"/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/fix_pixels_images/fix_pixels{i}.jpg"
@@ -33,10 +36,10 @@ for i in range(43, 128):  # 从fix_pixels241到fix_pixels256
         os.system(f"{sys.executable} /home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/expand_pictures.py")
 
 
-    print(f"结束了图片{i}的循环并保存图片")
+    print(f"End the loop for image {i} and save the image")
 
     with open("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/progress_log.txt", "a") as log_file:
-        log_file.write(f"结束了图片{i}的循环并保存图片\n")
+        log_file.write(f"End the loop for image {i} and save the image\n")
 
     print("=" * 50)
 

@@ -9,13 +9,13 @@ sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/")
 import os
 
 # 定义目标类别
-targets = ["plane", "car", "bird", "cat", "deer", "dog", "frog", "horse", "ship"]
+targets = ["bird","cat","dog","horse","truck","plane","car","deer","frog","ship"]
 
 # 在循环外部，初始化上一次的图片编号
-previous_i = 58
+previous_i = 197
 
 # 开始循环
-for i in range(59, 128):  # 从fix_pixels241到fix_pixels256
+for i in range(198,257):  # 从fix_pixels241到fix_pixels256
 
     # 在循环开始时，替换上一次的图片编号
     with open("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/expand_pictures.py", "r",encoding='utf-8') as file:
@@ -41,7 +41,7 @@ for i in range(59, 128):  # 从fix_pixels241到fix_pixels256
     with open("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/progress_log.txt", "a") as log_file:
         log_file.write(f"End the loop for image {i} and save the image\n")
 
-    print("=" * 50)
+    print("=" * 100)
 
     # 在循环结束时，更新上一次的图片编号
     previous_i = i

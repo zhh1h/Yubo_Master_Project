@@ -27,12 +27,15 @@ import knockoff.utils.model as model_utils
 from knockoff import datasets
 import knockoff.models.zoo as zoo
 
+
 __author__ = "Tribhuvanesh Orekondy"
 __maintainer__ = "Tribhuvanesh Orekondy"
 __email__ = "orekondy@mpi-inf.mpg.de"
 __status__ = "Development"
 
 torch.backends.cudnn.enabled = False
+
+
 
 class TransferSetImagePaths(ImageFolder):
     """TransferSet Dataset, for when images are stored as *paths*"""
@@ -56,7 +59,7 @@ class TransferSetImagePaths(ImageFolder):
     def __getitem__(self, index):
         # path = self.samples[index][0]
         # target = self.samples[0][index]
-        directory = "../../num_gradient/num_gradient_descent_master/std_deviation"  # 修改为你的图片目录
+        directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/caltech_0.7_0.5"  # 修改为你的图片目录
         filename,target = self.samples[index]
         full_path = os.path.join(directory, filename)
         #print(os.path.abspath(full_path))
@@ -141,6 +144,28 @@ def get_optimizer(parameters, optimizer_type, lr=0.01, momentum=0.5, **kwargs):
     return optimizer
 
 
+def get_transferset_from_parts(directory):
+    """
+    Combine multiple pickle parts from a directory into a single transferset list.
+
+    Parameters:
+    - directory: The directory containing the pickle parts named as "part_{i}.pickle".
+
+    Returns:
+    A combined transferset list.
+    """
+    all_parts = sorted([os.path.join(directory, fname) for fname in os.listdir(directory) if "part_" in fname])
+
+    combined_transferset = []
+
+    for part_path in all_parts:
+        with open(part_path, 'rb') as pf:
+            part_data = pickle.load(pf)
+            combined_transferset.extend(part_data)
+
+    return combined_transferset
+
+
 def main():
     parser = argparse.ArgumentParser(description='Train a model')
     # Required arguments
@@ -186,11 +211,21 @@ def main():
     model_dir = params['model_dir']
 
     # ----------- Set up transferset
-    transferset_path = osp.join(model_dir, 'transferset.pickle')
-    print(f"Model directory is: {model_dir}")
-    print(f"Transferset path is: {transferset_path}")
-    with open(transferset_path, 'rb') as rf:
-        transferset_samples = pickle.load(rf)
+    # transferset_path = osp.join(model_dir, 'transferset.pickle')
+    # print(f"Model directory is: {model_dir}")
+    # print(f"Transferset path is: {transferset_path}")
+    # with open(transferset_path, 'rb') as rf:
+    #     transferset_samples = pickle.load(rf)
+    # num_classes = transferset_samples[0][1].size(0)
+    # print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
+
+    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_0.7_0.5')
+    if osp.exists(transfer_parts_dir):
+        transferset_samples = get_transferset_from_parts(transfer_parts_dir)
+    else:
+        transferset_path = osp.join(params['model_dir'], 'transferset.pickle')
+        with open(transferset_path, 'rb') as rf:
+            transferset_samples = pickle.load(rf)
     num_classes = transferset_samples[0][1].size(0)
     print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
@@ -207,6 +242,9 @@ def main():
     #     transferset_samples = new_transferset_samples
 
     # ----------- Set up testset
+
+
+
     dataset_name = params['testdataset']
     valid_datasets = datasets.__dict__.keys()
     modelfamily = datasets.dataset_to_modelfamily[dataset_name]

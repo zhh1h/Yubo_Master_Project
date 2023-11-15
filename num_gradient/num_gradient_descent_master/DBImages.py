@@ -163,11 +163,11 @@ def test(f=net):
 def save_img(img, count=None):
     if not isinstance(img, (torch.Tensor, np.ndarray)):
         # 如果 img 已经是一个 PIL 图像，则直接保存
-        img.save(f'output{count}.png' if count is not None else 'output.png')
+        img.save(f'output{count}.png' if count is not None else 'output_DB.png')
     else:
         # 否则，将其转换为 PIL 图像并保存
         img = transforms.ToPILImage()(img)
-        img.save(f'output{count}.png' if count is not None else 'output.png ')
+        img.save(f'output{count}.png' if count is not None else 'output_DB.png ')
 
 
 
@@ -249,7 +249,7 @@ def save_transform(h, w, x, save_img=None):
 
     img = Image.fromarray(img, mode='RGB')
     #img = transform_fn(img)
-    img.save('output.png')
+    img.save('output_DB.png')
     img = transform_fn(img)
     if save_img != None:
         img.save('imgs/output{}.png'.format(save_img))
@@ -257,24 +257,22 @@ def save_transform(h, w, x, save_img=None):
     #img = transform_fn(img)
     return img
 
-def create_f(h, w, target):
+def create_f(h, w, target_class_name):
     def f(x, save_img=None, check_prediction=False):
         # Preprocess the image
-        #pixels = save_transform(h, w, x, save_img)
         pixels = save_transform(h, w, x, save_img)
         pixels_cuda = pixels.cuda()
-        #img_tensor = preprocess_with_transform_fn()
-        #img_tensor = save_transform(h, w, x, save_img)
         net.eval()
         output = net(pixels_cuda.unsqueeze(dim=0))
-        output = F.softmax(output[0], dim=0)
-        if check_prediction:
-            conf_predicted, predicted = torch.max(output, 0)
-            print("target: {} predicted: {}".format(classes[target], classes[predicted]))
-            if predicted != target:
-                return 0
-        return output[target].item()
+        output_softmax = F.softmax(output[0], dim=0)
+        conf, predicted_index = torch.max(output_softmax, 0)
+
+        target_class_index = classes.index(target_class_name)
+        return output_softmax[target_class_index].item(), predicted_index.item()
+
     return f
+
+
 
 # def create_f(h, w, target):
 #  	def f(x, save_img=None):
@@ -326,133 +324,174 @@ def linearize_pixels(img):
 #
 #     return h, w, img_array
 
+def num_grad(f, x):
+    delta = 20
+    grad = np.zeros_like(x)  # Match the shape of x
+    perturbed_x = np.copy(x)
+
+    it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    while not it.finished:
+        ix = it.multi_index
+        original_value = x[ix]
+
+        # Perturb the current element of x
+        perturbed_x[ix] = original_value + delta
+        grad[ix] = (f(perturbed_x)[0] - f(x)[0]) / delta  # 只处理置信度
+
+        # Reset the perturbed value
+        perturbed_x[ix] = original_value
+
+        it.iternext()
+
+    return grad
+
+
+def pppgd(f, x, target, num_steps=100, initial_alpha=0.5, momentum=0.9):
+    target_index = classes.index(target)
+    conf, predicted_class = f(x)
+    print(f"Initial confidence for target '{target}': {conf}, predicted class: {classes[predicted_class]}")
+
+    alpha = initial_alpha
+    grad = num_grad(f, x)
+    sign_data_grad = torch.sign(torch.from_numpy(grad))
+    update = torch.zeros_like(sign_data_grad)
+
+    for i in range(num_steps):
+        x = torch.from_numpy(x)
+        update = momentum * update + alpha * sign_data_grad
+        x = x + update
+        x = x.detach().numpy()
+        conf, predicted_class = f(x)
+
+        print(f"Step {i+1}, confidence {conf}, predicted class: {classes[predicted_class]}")
+
+        if predicted_class == target_index and conf > 0.2:
+            print(f"Target '{target}' reached confidence {conf} at step {i+1}, predicted class: {classes[predicted_class]}")
+            break
+        alpha *= 0.99
+
+    if predicted_class != target_index or conf <= 0.2:
+        print(f"Failed to reach confidence > 0.2 for image on target class {target}")
+        return pppgd(f, x, target, num_steps, initial_alpha, momentum)  # 重新执行攻击直到条件满足
+
+    print(f"Final confidence for target '{target}': {conf}, predicted class: {classes[predicted_class]}")
+    return x, conf
 
 
 
 
 
 
+# ... [前面的代码保持不变] ...
+
+# 图片文件夹路径
+image_folder = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/fix_pixels_images"
+output_folder = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBImages"  # 输出文件夹路径
+
+# ... [之前的代码保持不变] ...
+
+# 日志文件路径
+# ... [之前的代码保持不变] ...
+
+# 日志文件路径
+log_file_path = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DB_log.txt"
+
+# 自动遍历图片文件夹并进行处理
+with open(log_file_path, "a") as log_file:
+    for i in range(74, 257):  # 假设有256张图片
+        image_path = os.path.join(image_folder, f"fix_pixels{i}.jpg")
+
+        if not os.path.exists(image_path):
+            log_msg = f"Image not found: {image_path}\n"
+            print(log_msg)
+            log_file.write(log_msg)
+            continue
+
+        try:
+            img = Image.open(image_path)
+            h, w, img_array = linearize_pixels(img)
+
+            # 遍历每个目标类别
+            for target_class in classes:
+                print(f"Starting pppgd attack on image {i} for target class '{target_class}'")
+                f = create_f(h, w, target_class)
+                img_array, conf = pppgd(f, img_array, target_class, num_steps=10)
+                # ... [处理和保存图像的代码] ...
+
+                if conf > 0.2:
+                    # 保存图片
+                    reshaped_img_array = img_array.reshape((h, w, 3)).astype('uint8')
+                    output_filename = f"{target_class}_{conf:.4f}.png"
+                    final_img = Image.fromarray(reshaped_img_array, 'RGB')
+                    final_img.save(os.path.join(output_folder, output_filename))
+
+                    log_msg = f"Processed image {image_path} for target class {target_class}, saved as {output_filename}\n"
+                    print(log_msg)
+                    log_file.write(log_msg)
+                else:
+                    log_msg = f"Failed to reach confidence > 0.2 for image {image_path} on target class {target_class}\n"
+                    print(log_msg)
+                    log_file.write(log_msg)
+
+            log_msg = f"Completed processing of image: {image_path}\n"
+            print(log_msg)
+            log_file.write(log_msg)
+
+        except FileNotFoundError:
+            log_msg = f"Failed to open image: {image_path}\n"
+            print(log_msg)
+            log_file.write(log_msg)
+            continue
+
+# ... [之后的
+
+# ... [之后的代码保持不变] ...
 
 
+# ... [剩余的代码保持不变] ...
 
 
-
-
-
-if args.input_pic:
-        #print("There is input pic")
-        #net.eval()
-        img = Image.open(args.input_pic)
-        h, w, img_array = linearize_pixels(img)
-
-        # with torch.autograd.profiler.profile(use_cuda=True) as prof:
-        #     import pyprof
-        with torch.autograd.profiler.emit_nvtx():
-            net.eval()
-        test_classifier(h, w, img_array)
-        #print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
-        #print(prof)
-
-        if args.target:
-            f = create_f(h, w, classes.index(args.target))
-
-            #print(f(img_array))
-            #img_array = ngd.num_ascent_g(f, img_array)
-            start_time0 = time.time()
-            #while True:
-            start_time = time.time()
-                #img_array = ngd.num_ascent(f, img_array)
-                #img_array = ngd.num_ascent_g(f, img_array)
-                #img_array = ngd.ppgd(f, img_array)
-            while f(img_array) <= 0.9:
-                img_array = ngd.pppgd(f, img_array,num_steps = 10)
-                #img_array = ngd.pgd_d(f, img_array, epsilons=0.3, alpha=0.01, num_steps=5)
-                index = test_classifier(h,w,img_array)
-                print(index)
-                step_time = time.time()
-                time_interval = step_time - start_time
-                print(f"gradient time: {time_interval} 秒")
-            #if ((test_classifier(h, w, img_array)) == classes.index(args.target)) and (create_f(h, w, img_array) >= 0.5):
-            #if create_f(h, w, classes.index(args.target)) >= 0.5:
-            reshaped_img_array = img_array.reshape((h, w, 3)).astype('uint8')
-
-            # 使用 PIL 库保存图像
-            final_img = Image.fromarray(reshaped_img_array, 'RGB')
-            final_img.save('output_final.png')
-            h, w, img_array = linearize_pixels(final_img)
-            test_classifier(h, w, img_array)
-            final_time= time.time()
-            final_interval = final_time - start_time0
-            print(f"final time interval: {final_interval} 秒")
-
-
-
-                #break
-                #return img_array
-            # #ngd.ppgd(f,img_array)
-
-
-
-
-else:
-        print("No input pic provided")
-
-
-#
-#
 # if args.input_pic:
-#     img = Image.open(args.input_pic)
-#     h, w, img_array = linearize_pixels(img)
+#         #print("There is input pic")
+#         #net.eval()
+#         img = Image.open(args.input_pic)
+#         h, w, img_array = linearize_pixels(img)
 #
-#     # Test the classifier with the original image
-#     original_label = test_classifier(h, w, img_array)
+#         # with torch.autograd.profiler.profile(use_cuda=True) as prof:
+#         #     import pyprof
+#         with torch.autograd.profiler.emit_nvtx():
+#             net.eval()
+#         test_classifier(h, w, img_array)
+#         #print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=20))
+#         #print(prof)
 #
-#     if args.target:
-#         # Convert the target label name to its corresponding index
-#         target_label_index = classes.index(args.target)
-#         f = create_f(h, w, target_label_index)
+#         if args.target:
+#             f = create_f(h, w, classes.index(args.target))
+#
+#             start_time0 = time.time()
+#             img_array, conf = pppgd(f, img_array, num_steps=10)  # 调用新的pppgd函数
+#             predicted_class, _, _ = test_classifier(h, w, img_array, return_class_index=True, return_confidence=True)
+#             reshaped_img_array = img_array.reshape((h, w, 3)).astype('uint8')
+#
+#             # 保存满足条件的图片到指定文件夹
+#             output_folder = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBImages"  # 替换为您指定的文件夹路径
+#             output_filename = f"{predicted_class}_{conf:.2f}.png"  # 文件命名为“种类_分数.png”
+#             final_img = Image.fromarray(reshaped_img_array, 'RGB')
+#             final_img.save(os.path.join(output_folder, output_filename))
+#
+#             final_time = time.time()
+#             final_interval = final_time - start_time0
+#             print(f"final time interval: {final_interval} 秒")
 #
 #
-#         start_time_total = time.time()  # Start timing for total time
 #
-#         # Perform PGD attack
-#         while True:
-#             start_time_pgd = time.time()  # Start timing for PGD
-#             #img_array = img_array.reshape(1, 3, h, w)
-#             #img_array = img_array.squeeze(0)  # remove the first dimension
-#             img_array = ngd.pgd_d(f, img_array, epsilons=0.3, alpha=0.01, num_steps=100)
-#             perturbed_label = test_classifier(h, w, img_array)
-#             end_time_pgd = time.time()  # End timing for PGD
-#             print(f"Time elapsed for PGD: {end_time_pgd - start_time_pgd} seconds")
-#             #if perturbed_label == target_label_index:
-#             if perturbed_label == target_label_index:
+#                 #break
+#                 #return img_array
+#             # #ngd.ppgd(f,img_array)
 #
-#                 break
 #
-#         end_time_total = time.time()  # End timing for total time
-#         print(f"Total time elapsed: {end_time_total - start_time_total} seconds")
 #
-#         print(f"Original label: {classes[original_label]}, Perturbed label: {classes[perturbed_label]}")
+#
 # else:
-#     print("No input pic provided")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#         print("No input pic provided")
 

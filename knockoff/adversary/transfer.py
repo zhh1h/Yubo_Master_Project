@@ -8,13 +8,10 @@ import os.path as osp
 import os
 from torchvision.datasets import VisionDataset
 from PIL import Image
+import tracemalloc
 
 
-# get absolute path of current file from sys module
-# curPath = os.path.abspath(os.path.dirname(__file__))
-# split abs path and get the root path(last level of the current file)
-# rootPath = os.path.split(curPath)[0]
-# add the root path of current file to the environment vars
+
 sys.path.append("/home/yubo/yubo_tem_code/knockoffnets")
 
 import pickle
@@ -27,14 +24,10 @@ from tqdm import tqdm
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-import torchvision
+
 
 from knockoff import datasets
-import knockoff.utils.transforms as transform_utils
-import knockoff.utils.model as model_utils
+
 import knockoff.utils.utils as knockoff_utils
 from knockoff.victim.blackbox import Blackbox
 import knockoff.config as cfg
@@ -47,6 +40,7 @@ __status__ = "Development"
 
 #torch.load('',map_location='cpu')
 torch.nn.Module.dump_patches = True
+
 
 
 class FlatDirectoryImageDataset(VisionDataset):
@@ -66,6 +60,8 @@ class FlatDirectoryImageDataset(VisionDataset):
 
     def __len__(self):
         return len(self.image_files)
+
+tracemalloc.start()
 
 class RandomAdversary(object):
     def __init__(self, blackbox, queryset, batch_size=8):
@@ -88,13 +84,57 @@ class RandomAdversary(object):
         self.idx_set = set(range(len(self.queryset)))
         self.transferset = []
 
-    def get_transferset(self, budget):
+    # def get_transferset(self, budget):
+    #     start_B = 0
+    #     end_B = budget
+    #     with tqdm(total=budget) as pbar:
+    #         for t, B in enumerate(range(start_B, end_B, self.batch_size)):
+    #             idxs = np.random.choice(list(self.idx_set), replace=False,
+    #                                     size=min(self.batch_size, budget - len(self.transferset)))
+    #             self.idx_set = self.idx_set - set(idxs)
+    #
+    #             if len(self.idx_set) == 0:
+    #                 print('=> Query set exhausted. Now repeating input examples.')
+    #                 self.idx_set = set(range(len(self.queryset)))
+    #
+    #             x_t = torch.stack([self.queryset[i][0] for i in idxs]).to(self.blackbox.device)
+    #             #print(x_t.is_contiguous())
+    #
+    #             y_t = self.blackbox(x_t).cpu()
+    #
+    #             if hasattr(self.queryset, 'samples'):
+    #                 # Any DatasetFolder (or subclass) has this attribute
+    #                 # Saving image paths are space-efficient
+    #                 img_t = [self.queryset.samples[i][0] for i in idxs]  # Image paths
+    #             else:
+    #                 # Otherwise, store the image itself
+    #                 # But, we need to store the non-transformed version
+    #                 img_t = [self.queryset.data[i] for i in idxs]
+    #                 if isinstance(self.queryset.data[0], torch.Tensor):
+    #                     img_t = [x.numpy() for x in img_t]
+    #
+    #             for i in range(x_t.size(0)):
+    #                 img_t_i = img_t[i].squeeze() if isinstance(img_t[i], np.ndarray) else img_t[i]
+    #                 self.transferset.append((img_t_i, y_t[i].cpu().squeeze()))
+    #
+    #             pbar.update(x_t.size(0))
+    #
+    #     return self.transferset
+
+    def get_transferset(self, budget, transfer_out_dir):
         start_B = 0
         end_B = budget
+        total_saved = 0
+        part_num = 0
+
+        # 确保输出目录存在
+        if not os.path.exists(transfer_out_dir):
+            os.makedirs(transfer_out_dir)
+
         with tqdm(total=budget) as pbar:
-            for t, B in enumerate(range(start_B, end_B, self.batch_size)):
+            while total_saved < budget:
                 idxs = np.random.choice(list(self.idx_set), replace=False,
-                                        size=min(self.batch_size, budget - len(self.transferset)))
+                                        size=min(self.batch_size, budget - total_saved))
                 self.idx_set = self.idx_set - set(idxs)
 
                 if len(self.idx_set) == 0:
@@ -102,28 +142,31 @@ class RandomAdversary(object):
                     self.idx_set = set(range(len(self.queryset)))
 
                 x_t = torch.stack([self.queryset[i][0] for i in idxs]).to(self.blackbox.device)
-                #print(x_t.is_contiguous())
-
                 y_t = self.blackbox(x_t).cpu()
 
                 if hasattr(self.queryset, 'samples'):
-                    # Any DatasetFolder (or subclass) has this attribute
-                    # Saving image paths are space-efficient
-                    img_t = [self.queryset.samples[i][0] for i in idxs]  # Image paths
+                    img_t = [self.queryset.samples[i][0] for i in idxs]
                 else:
-                    # Otherwise, store the image itself
-                    # But, we need to store the non-transformed version
                     img_t = [self.queryset.data[i] for i in idxs]
                     if isinstance(self.queryset.data[0], torch.Tensor):
                         img_t = [x.numpy() for x in img_t]
 
+                part_transferset = []
                 for i in range(x_t.size(0)):
                     img_t_i = img_t[i].squeeze() if isinstance(img_t[i], np.ndarray) else img_t[i]
-                    self.transferset.append((img_t_i, y_t[i].cpu().squeeze()))
+                    part_transferset.append((img_t_i, y_t[i].cpu().squeeze()))
 
-                pbar.update(x_t.size(0))
+                # 将这部分的transferset保存为一个新的pickle文件
+                part_path = os.path.join(transfer_out_dir, f"part_{part_num}.pickle")
+                with open(part_path, 'wb') as pf:
+                    pickle.dump(part_transferset, pf)
 
-        return self.transferset
+                total_saved += len(idxs)
+                part_num += 1
+                pbar.update(len(idxs))
+
+        return total_saved
+
 
 
 def main():
@@ -208,7 +251,8 @@ def main():
     # ----------- Initialize adversary
     batch_size = params['batch_size']
     nworkers = params['nworkers']
-    transfer_out_path = osp.join(out_path, 'transferset.pickle')
+    #transfer_out_path = osp.join(out_path, 'transferset.pickle')
+    transfer_out_dir = osp.join(out_path, 'transferset_parts_0.7_0.5')
     if params['policy'] == 'random':
         adversary = RandomAdversary(blackbox, queryset, batch_size=batch_size)
     elif params['policy'] == 'adaptive':
@@ -216,13 +260,32 @@ def main():
     else:
         raise ValueError("Unrecognized policy")
 
-    print('=> constructing transfer set...')
-    transferset = adversary.get_transferset(params['budget'])
-    with open(transfer_out_path, 'wb') as wf:
-        pickle.dump(transferset, wf)
-    print('=> transfer set ({} samples) written to: {}'.format(len(transferset), transfer_out_path))
 
-    # Store arguments
+#     print('=> constructing transfer set...')
+#     transferset = adversary.get_transferset(params['budget'])
+#     with open(transfer_out_path, 'wb') as wf:
+#         pickle.dump(transferset, wf)
+#     print('=> transfer set ({} samples) written to: {}'.format(len(transferset), transfer_out_path))
+#
+#     # Store arguments
+#     params['created_on'] = str(datetime.now())
+#     params_out_path = osp.join(out_path, 'params_transfer.json')
+#     with open(params_out_path, 'w') as jf:
+#         json.dump(params, jf, indent=True)
+#
+# snapshot = tracemalloc.take_snapshot()
+# top_stats = snapshot.statistics('lineno')  # 按行号对统计信息进行排序
+#
+# # 打印内存使用情况的前10行
+# for stat in top_stats[:10]:
+#     print(stat)
+#
+#
+# tracemalloc.stop()
+    print('=> constructing transfer set...')
+    total_saved = adversary.get_transferset(params['budget'], transfer_out_dir)
+    print('=> total {} samples saved in parts under: {}'.format(total_saved, transfer_out_dir))
+
     params['created_on'] = str(datetime.now())
     params_out_path = osp.join(out_path, 'params_transfer.json')
     with open(params_out_path, 'w') as jf:

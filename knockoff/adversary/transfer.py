@@ -252,7 +252,7 @@ def main():
     batch_size = params['batch_size']
     nworkers = params['nworkers']
     #transfer_out_path = osp.join(out_path, 'transferset.pickle')
-    transfer_out_dir = osp.join(out_path, 'transferset_parts_0.7_0.5')
+    transfer_out_dir = osp.join(out_path, 'transferset_parts_0.75_0.5_DB_std')
     if params['policy'] == 'random':
         adversary = RandomAdversary(blackbox, queryset, batch_size=batch_size)
     elif params['policy'] == 'adaptive':

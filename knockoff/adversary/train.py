@@ -59,7 +59,7 @@ class TransferSetImagePaths(ImageFolder):
     def __getitem__(self, index):
         # path = self.samples[index][0]
         # target = self.samples[0][index]
-        directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/caltech_0.7_0.5"  # 修改为你的图片目录
+        directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/caltech_0.75_0.5_DB_std"  # 修改为你的图片目录
         filename,target = self.samples[index]
         full_path = os.path.join(directory, filename)
         #print(os.path.abspath(full_path))
@@ -219,7 +219,7 @@ def main():
     # num_classes = transferset_samples[0][1].size(0)
     # print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
-    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_0.7_0.5')
+    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_0.75_0.5_DB_std')
     if osp.exists(transfer_parts_dir):
         transferset_samples = get_transferset_from_parts(transfer_parts_dir)
     else:

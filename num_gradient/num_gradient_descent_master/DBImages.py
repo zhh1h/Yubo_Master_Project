@@ -398,7 +398,7 @@ log_file_path = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradi
 
 # 自动遍历图片文件夹并进行处理
 with open(log_file_path, "a") as log_file:
-    for i in range(74, 257):  # 假设有256张图片
+    for i in range(247, 257):  # 假设有256张图片
         image_path = os.path.join(image_folder, f"fix_pixels{i}.jpg")
 
         if not os.path.exists(image_path):

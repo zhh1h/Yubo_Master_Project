@@ -12,10 +12,10 @@ import os
 targets = ["bird","cat","dog","horse","truck","plane","car","deer","frog","ship"]
 
 # 在循环外部，初始化上一次的图片编号
-previous_i = 197
+previous_i = 255
 
 # 开始循环
-for i in range(198,257):  # 从fix_pixels241到fix_pixels256
+for i in range(256,257):  # 从fix_pixels241到fix_pixels256
 
     # 在循环开始时，替换上一次的图片编号
     with open("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/expand_pictures.py", "r",encoding='utf-8') as file:

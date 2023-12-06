@@ -11,7 +11,7 @@ sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradi
 from cifar10vgg19testClassifier import test_classifier, linearize_pixels
 
 # 保存噪声图像的文件夹
-SAVE_PATH = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/caltech_0.7_0.5'
+SAVE_PATH = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/std_0.2'
 if not os.path.exists(SAVE_PATH):
     os.makedirs(SAVE_PATH)
 
@@ -48,7 +48,7 @@ def generate_image_with_noise_and_classify(h, w, img_array, img_name, std_deviat
     return predicted_class, scores
 
 # 图像文件夹的路径
-folder_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/caltech256AimImage/truck0'
+folder_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/_0_images'
 
 for img_file in os.listdir(folder_path):
     if img_file.endswith(('.jpg', '.jpeg', '.png')):
@@ -73,4 +73,4 @@ for img_file in os.listdir(folder_path):
                 print(f"When the standard deviation is {std_deviation}, {img_file}'s class changes to {new_class}. Ending {img_file}'s operation.")
                 break  # 结束循环
 
-            std_deviation += 0.5
+            std_deviation += 0.2

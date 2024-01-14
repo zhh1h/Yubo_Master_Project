@@ -241,7 +241,7 @@ class AdaptiveAdversary(object):
         actual_saved = 0
 
         # 定义抽样阈值
-        confidence_threshold = 0.5
+        confidence_threshold = 0.7
         cluster_sample_limit = len(self.queryset) // self.num_clusters
         part_num, actual_saved = self.load_progress(progress_out_path)
         total_saved = actual_saved
@@ -251,6 +251,10 @@ class AdaptiveAdversary(object):
             os.makedirs(out_path)
         if not os.path.exists(images_out_dir):
             os.makedirs(images_out_dir)
+
+        # 重置进度
+        self.idx_set = set(range(len(self.queryset)))
+        self.samples_per_cluster = {i: [] for i in range(self.num_clusters)}
 
         with tqdm(total=budget,initial=total_saved) as pbar:
             while total_saved < budget:
@@ -428,8 +432,8 @@ def main():
     #     )
     # else:
     #     raise ValueError("Unrecognized policy")
-    final_out_path = osp.join(base_out_path, 'transferset_parts_stds0.5_caltech0.7_0.5' if params[
-                                                                                       'policy'] == 'random' else 'transfer_std_s0.7_50000_adaptive')
+    final_out_path = osp.join(base_out_path, 'transferset_parts_stds0.7' if params[
+                                                                                       'policy'] == 'random' else 'transfer_std_s0.7')
     knockoff_utils.create_dir(final_out_path)
 
     #final_out_path = None
@@ -490,7 +494,7 @@ def main():
     if params['policy'] == 'random':
         total_saved = adversary.get_transferset(params['budget'], final_out_path)
     if params['policy'] == 'adaptive':
-        images_out_dir = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/std_s0.5'
+        images_out_dir = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/std_s0.7'
         total_saved = adversary.get_transferset(params['budget'], final_out_path, images_out_dir,progress_out_path)
     print('=> total {} samples saved in parts under: {}'.format(total_saved, final_out_path))
 

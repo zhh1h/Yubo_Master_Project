@@ -125,15 +125,15 @@ def get_all_outputs(model, train_loader, device):
     return torch.cat(all_outputs)
 
 
-
-
 def compute_weights(outputs):
-    confidences, _ = torch.max(F.softmax(outputs, dim=1), dim=1)
-    # 使用非线性函数，例如平方根
-    weights = torch.exp(-confidences)
+    probabilities = F.softmax(outputs, dim=1)
+    log_probabilities = torch.log(probabilities + 1e-6)  # 防止对0取log
+    entropy = -torch.sum(probabilities * log_probabilities, dim=1)
 
-    # 可选：规范化权重
-    weights = weights / weights.sum()
+    # 将熵映射到权重
+    weights = entropy - torch.min(entropy)  # 归一化熵到非负数
+    weights = weights / torch.max(weights)  # 将权重归一化到[0, 1]范围
+
     return weights
 
 

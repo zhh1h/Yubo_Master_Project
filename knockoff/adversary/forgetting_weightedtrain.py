@@ -9,18 +9,11 @@ import os.path as osp
 import pickle
 from datetime import datetime
 from torch.utils.data import Dataset, DataLoader
-from collections import defaultdict
 import time
-import sys
-sys.path.append("../../")
-from example_forgetting import order_examples_by_forgetting
-
-
+from knockoff.example_forgetting import order_examples_by_forgetting
 
 
 import numpy as np
-#from ..example_forgetting import order_examples_by_forgetting
-
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
@@ -149,7 +142,7 @@ def compute_weights(outputs):
 
 
 
-def train_step(model, train_loader, criterion, optimizer, epoch, device,clip_value=1.0,log_interval=10, writer=None,diag_stats=None):
+def train_step(model, train_loader, criterion, optimizer, epoch, device,clip_value=1.0,log_interval=10, writer=None):
     model.train()
     train_loss = 0.
     correct = 0
@@ -165,32 +158,6 @@ def train_step(model, train_loader, criterion, optimizer, epoch, device,clip_val
         # 使用自定义的权重计算函数
         batch_weights = compute_weights(outputs)
         batch_weights = batch_weights.to(device)
-        loss = criterion(outputs, targets, weights=batch_weights)
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
-        optimizer.step()
-        train_loss += loss.item()
-        _, predicted = outputs.max(1)
-        total += targets.size(0)
-        correct += predicted.eq(targets).sum().item()
-
-        if diag_stats is not None:
-            batch_acc = predicted.eq(targets).float()
-            for i in range(inputs.size(0)):
-                sample_id = batch_idx * train_loader.batch_size + i
-                diag_stats[sample_id].append({
-                    'loss': loss[i].item(),
-                    'accuracy': batch_acc[i].item(),
-                })
-
-        #batch_loss = criterion(outputs, targets, weights=batch_weights)
-        for i in range(inputs.size(0)):
-            sample_id = batch_idx * train_loader.batch_size + i
-            diag_stats[sample_id].append({
-                'loss': loss[i].item(),
-                'accuracy': batch_acc[i].item(),
-                # 你可能还需要记录其他信息，如分类边缘
-            })
 
         # 计算加权损失
         loss = criterion(outputs, targets, weights=batch_weights)
@@ -261,29 +228,11 @@ def test_step(model, test_loader, criterion, device, epoch=0., silent=False,writ
 
     return test_loss, acc
 
-def analyze_forgetting(diag_stats):
-    forgetting_counts = {}
-    for sample_id, stats in diag_stats.items():
-        # 假设stats中包含了一个列表，每个元素是一个字典，包含了'accuracy'键
-        accuracies = [s['accuracy'] for s in stats]
-        # 计算遗忘次数
-        forgetting_count = sum(1 for i in range(1, len(accuracies)) if accuracies[i-1] == 1 and accuracies[i] == 0)
-        forgetting_counts[sample_id] = forgetting_count
-    return forgetting_counts
-
-# 在训练的适当位置调用该函数
-
-
-# 输出结果
-
-
-
 
 def train_model(model, trainset, out_path, batch_size=128, criterion_train=None, criterion_test=None, testset=None,
                 device=None, num_workers=10, lr=0.1, momentum=0.5, lr_step=30, lr_gamma=0.1, resume=None,
                 epochs=100, log_interval=100, weighted_loss=False, checkpoint_suffix='', optimizer=None, scheduler=None,
                 writer=None, **kwargs):
-    diag_stats = defaultdict(list)  # 用于记录每个样本的诊断信息
     if device is None:
         device = torch.device('cuda')
     if not osp.exists(out_path):
@@ -351,8 +300,7 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
     for epoch in range(start_epoch, epochs + 1):
         # outputs = get_all_outputs(model, train_loader, device)
         # weights = calculate_weights(outputs)
-        train_loss, train_acc = train_step(model, train_loader, criterion_train, optimizer, epoch, device,log_interval=log_interval,diag_stats=diag_stats)
-        test_loss, test_acc = test_step(model, test_loader, criterion_train, device, epoch=epoch)
+        train_loss, train_acc = train_step(model, train_loader, criterion_train, optimizer, epoch, device,log_interval=log_interval)
 
         # train_loss, train_acc = train_step(model, train_loader, criterion_train, optimizer, epoch, device,
         #                                    log_interval=log_interval)
@@ -374,9 +322,7 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
                 'created_on': str(datetime.now()),
             }
             torch.save(state, model_out_path)
-        forgetting_counts = analyze_forgetting(diag_stats)
-        for sample_id, count in forgetting_counts.items():
-            print(f"Sample {sample_id}: Forgot {count} times")
+
 
         with open(log_path, 'a') as af:
             train_cols = [run_id, epoch, 'train', train_loss, train_acc, best_train_acc]
@@ -508,8 +454,6 @@ def get_transferset_from_parts(directory):
 
     print(f"Total samples in combined transferset: {len(combined_transferset)}")  # 打印合并后的总长度
     return combined_transferset
-
-
 
 
 
@@ -654,3 +598,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

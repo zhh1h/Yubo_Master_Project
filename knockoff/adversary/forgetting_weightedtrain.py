@@ -8,22 +8,23 @@ import os
 import os.path as osp
 import pickle
 from datetime import datetime
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
+from collections import defaultdict
+
+
 import time
-from knockoff.example_forgetting import order_examples_by_forgetting
+import sys
 
 
 import numpy as np
+from knockoff.example_forgetting import order_examples_by_forgetting as forgetting
+
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
-import torch.utils.data as data
 from torch import optim
 from collections import defaultdict as dd
 from torchvision.datasets.folder import ImageFolder, IMG_EXTENSIONS, default_loader
-from torchvision.transforms.functional import to_tensor
-
-import sys
 
 #sys.path.append("/home/yubo/yubo_tem_code/knockoffnets")
 
@@ -129,20 +130,15 @@ def get_all_outputs(model, train_loader, device):
 
 def compute_weights(outputs):
     probabilities = F.softmax(outputs, dim=1)
-    log_probabilities = torch.log(probabilities + 1e-6)  # 防止对0取log
-    entropy = -torch.sum(probabilities * log_probabilities, dim=1)
-
-    # 将熵映射到权重
-    weights = entropy - torch.min(entropy)  # 归一化熵到非负数
-    weights = weights / torch.max(weights)  # 将权重归一化到[0, 1]范围
-
+    confidences, _ = torch.max(probabilities, dim=1)
+    weights = torch.exp(-confidences)  # 使用 e^(-confidence)
     return weights
 
 
 
 
 
-def train_step(model, train_loader, criterion, optimizer, epoch, device,clip_value=1.0,log_interval=10, writer=None):
+def train_step(model, train_loader, criterion, optimizer, epoch, device,clip_value=1.0,log_interval=10, writer=None,diag_stats=None):
     model.train()
     train_loss = 0.
     correct = 0
@@ -152,37 +148,64 @@ def train_step(model, train_loader, criterion, optimizer, epoch, device,clip_val
 
     for batch_idx, (inputs, targets) in enumerate(train_loader):
         inputs, targets = inputs.to(device), targets.to(device)
+        # if torch.isnan(inputs).any() or torch.isnan(targets).any():
+        #     print(f"Warning: NaN detected in inputs or targets at batch {batch_idx}")
         optimizer.zero_grad()
         outputs = model(inputs)
-
-        # 使用自定义的权重计算函数
+        # if torch.isnan(outputs).any() or torch.isinf(outputs).any():
+        #     print(f"Warning: NaN or Inf detected in model outputs at batch {batch_idx}")
+        #     print("Sample outputs:", outputs)
         batch_weights = compute_weights(outputs)
+        # if torch.isnan(batch_weights).any():
+        #     print(f"Warning: NaN detected in computed weights at batch {batch_idx}")
+
         batch_weights = batch_weights.to(device)
 
-        # 计算加权损失
+        # 使用自定义的权重计算函数
         loss = criterion(outputs, targets, weights=batch_weights)
+        # if torch.isnan(loss):
+        #     print(f"Warning: NaN detected in loss at batch {batch_idx}")
+
         loss.backward()
+        # if any(torch.isnan(p.grad).any() for p in model.parameters() if p.grad is not None):
+        #     print(f"Warning: NaN detected in gradients at batch {batch_idx}")
+
         torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
         optimizer.step()
-
         train_loss += loss.item()
         _, predicted = outputs.max(1)
         total += targets.size(0)
+
         if targets.dim() > 1:
             targets = targets.argmax(dim=1)
-
+        targets = targets.long()
         correct += predicted.eq(targets).sum().item()
+        for i, target in enumerate(targets):
+            example_id = train_loader.dataset.samples[batch_idx * train_loader.batch_size + i][0]# 假设样本的ID可以通过这种方式获取
+            acc = predicted[i].eq(target).item()
+            diag_stats[example_id].append((loss.item(), acc))
+        # 计算加权损失
 
         if (batch_idx + 1) % log_interval == 0 or batch_idx == 0:
             acc = 100. * correct / total
             print(f'[Train] Epoch: {epoch:.2f} [{total}/{epoch_size} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}\tAccuracy: {acc:.1f} ({correct}/{total})')
 
     t_end = time.time()
+    sample_ids_to_debug = train_loader.dataset.samples[:5]  # 选择前5个样本进行调试
+    print("Debugging sample accuracy changes:")
+    for idx, (sample_id, _) in enumerate(sample_ids_to_debug):
+        example_stats = diag_stats[sample_id]
+        accuracies = [acc for (_, acc) in example_stats]
+        print(f"Sample {idx} (ID: {sample_id}): Accuracies: {accuracies}")
     acc = 100. * correct / total
+    # 在 train_step 函数的末尾添加
+
+
     return train_loss / total, acc
 
 
-def test_step(model, test_loader, criterion, device, epoch=0., silent=False,writer=True):
+
+def test_step(model, test_loader, criterion, device, epoch=0., silent=False, writer=None):
     model.eval()
     test_loss = 0.
     correct = 0
@@ -200,39 +223,47 @@ def test_step(model, test_loader, criterion, device, epoch=0., silent=False,writ
             _, predicted = outputs.max(1)
             total += targets.size(0)
             if len(targets.size()) == 2:
-                # Labels could be a posterior probability distribution. Use argmax as a proxy.
-                target_probs, target_labels = targets.max(1)
+                target_labels = targets.max(1)[1]
             else:
                 target_labels = targets
-            #correct += predicted.eq(target_labels).sum().item()
-
-            #prog = total / epoch_size
-            #exact_epoch = epoch + prog - 1
-            acc = 100. * correct / total
-            test_loss = test_loss / total
             correct += predicted.eq(target_labels).sum().item()
 
     t_end = time.time()
-    t_epoch = int(t_end - t_start)
-
-    #acc = 100. * correct / total
-    #test_loss /= total
+    acc = 100. * correct / total
+    test_loss /= total
 
     if not silent:
-        print('[Test]  Epoch: {}\tLoss: {:.6f}\tAcc: {:.1f}% ({}/{})'.format(epoch, test_loss, acc,
-                                                                             correct, total))
+        print('[Test]  Epoch: {}\tLoss: {:.6f}\tAcc: {:.1f}% ({}/{})'.format(epoch, test_loss, acc, correct, total))
 
-    if writer is not None:
+    if writer and not isinstance(writer, bool):
         writer.add_scalar('Loss/test', test_loss, epoch)
         writer.add_scalar('Accuracy/test', acc, epoch)
 
     return test_loss, acc
+#
+# def analyze_forgetting(diag_stats):
+#     forgetting_counts = {}
+#     for sample_id, stats in diag_stats.items():
+#         # 假设stats中包含了一个列表，每个元素是一个字典，包含了'accuracy'键
+#         accuracies = [s['accuracy'] for s in stats]
+#         # 计算遗忘次数
+#         forgetting_count = sum(1 for i in range(1, len(accuracies)) if accuracies[i-1] == 1 and accuracies[i] == 0)
+#         forgetting_counts[sample_id] = forgetting_count
+#     return forgetting_counts
+
+# 在训练的适当位置调用该函数
+
+
+# 输出结果
+
+
 
 
 def train_model(model, trainset, out_path, batch_size=128, criterion_train=None, criterion_test=None, testset=None,
                 device=None, num_workers=10, lr=0.1, momentum=0.5, lr_step=30, lr_gamma=0.1, resume=None,
                 epochs=100, log_interval=100, weighted_loss=False, checkpoint_suffix='', optimizer=None, scheduler=None,
                 writer=None, **kwargs):
+    diag_stats = defaultdict(list)  # 用于记录每个样本的诊断信息
     if device is None:
         device = torch.device('cuda')
     if not osp.exists(out_path):
@@ -300,13 +331,33 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
     for epoch in range(start_epoch, epochs + 1):
         # outputs = get_all_outputs(model, train_loader, device)
         # weights = calculate_weights(outputs)
-        train_loss, train_acc = train_step(model, train_loader, criterion_train, optimizer, epoch, device,log_interval=log_interval)
+        train_loss, train_acc = train_step(model, train_loader, criterion_train, optimizer, epoch, device,log_interval=log_interval, diag_stats=diag_stats)
+        #test_loss, test_acc = test_step(model, test_loader, criterion_train, device, epoch=epoch)
 
         # train_loss, train_acc = train_step(model, train_loader, criterion_train, optimizer, epoch, device,
         #                                    log_interval=log_interval)
         scheduler.step(epoch)
         best_train_acc = max(best_train_acc, train_acc)
 
+        presentations_needed_to_learn, unlearned_per_presentation, margins_per_presentation, first_learned = forgetting.compute_forgetting_statistics(
+            diag_stats, epochs)
+
+        ordered_examples, ordered_values = forgetting.sort_examples_by_forgetting(unlearned_per_presentation, epochs)
+        # 在 train_model 函数中，在调用 sort_examples_by_forgetting 之前添加
+        sorted_forgetting = sorted(unlearned_per_presentation.items(), key=lambda x: len(x[1]), reverse=True)
+
+        # 写入文件
+        with open(os.path.join(out_path, 'forgotten_examples.txt'), 'w') as file_forgotten, \
+                open(os.path.join(out_path, 'never_forgotten_examples.txt'), 'w') as file_never_forgotten:
+            file_forgotten.write("Example ID\tTotal Forgetting Count\n")
+            file_never_forgotten.write("Example ID\n")
+
+            for example_id, forgetting_events in sorted_forgetting:
+                forgetting_count = len(forgetting_events)
+                if forgetting_count > 0:
+                    file_forgotten.write(f"{example_id}\t{forgetting_count}\n")
+                else:
+                    file_never_forgotten.write(f"{example_id}\n")
         if test_loader is not None:
             test_loss, test_acc = test_step(model, test_loader, criterion_train, device, epoch=epoch)
             best_test_acc = max(best_test_acc, test_acc)
@@ -322,6 +373,9 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
                 'created_on': str(datetime.now()),
             }
             torch.save(state, model_out_path)
+        # forgetting_counts = analyze_forgetting(diag_stats)
+        # for sample_id, count in forgetting_counts.items():
+        #     print(f"Sample {sample_id}: Forgot {count} times")
 
 
         with open(log_path, 'a') as af:
@@ -330,10 +384,24 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
             # test_cols = [run_id, epoch, 'test', test_loss, test_acc, best_test_acc]
             # af.write('\t'.join([str(c) for c in test_cols]) + '\n')
 
+    # 在 train_model 函数内部，在 return model 之前添加
+    # # 汇总并分析整个训练过程中的遗忘事件
+    # presentations_needed_to_learn, unlearned_per_presentation, margins_per_presentation, first_learned = forgetting.compute_forgetting_statistics(
+    #     diag_stats, epochs)
+    # ordered_examples, ordered_values = forgetting.sort_examples_by_forgetting([unlearned_per_presentation],
+    #                                                                           [first_learned], epochs)
+    # print("Overall forgotten examples ranking:")
+    # for idx, example_id in enumerate(ordered_examples[:10]):
+    #     print(f"Example ID: {example_id}, Total Forgetting Count: {ordered_values[idx]}")
+    #
+    # return model
+
+    # 在 train_model 函数的循环结束后
+
+
+
+
     return model
-
-
-
 
 class TransferSetImagePaths(ImageFolder):
     """TransferSet Dataset, for when images are stored as *paths*"""
@@ -454,6 +522,8 @@ def get_transferset_from_parts(directory):
 
     print(f"Total samples in combined transferset: {len(combined_transferset)}")  # 打印合并后的总长度
     return combined_transferset
+
+
 
 
 

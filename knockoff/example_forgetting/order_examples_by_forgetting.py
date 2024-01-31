@@ -13,48 +13,82 @@ import pickle
 #
 # Returns 4 dictionaries with statistics per example
 #
-def compute_forgetting_statistics(diag_stats, npresentations):
+# def compute_forgetting_statistics(diag_stats, npresentations):
+#     presentations_needed_to_learn = {}
+#     unlearned_per_presentation = {}
+#     margins_per_presentation = {}
+#     first_learned = {}
+#
+#     for example_id, example_stats in diag_stats.items():
+#         # Skip 'train' and 'test' keys of diag_stats
+#         if not isinstance(example_id, str):
+#             # Forgetting event is a transition in accuracy from 1 to 0
+#             presentation_acc = np.array(example_stats[1][:npresentations])
+#             transitions = presentation_acc[1:] - presentation_acc[:-1]
+#
+#             # Find all presentations when forgetting occurs
+#             if len(np.where(transitions == -1)[0]) > 0:
+#                 unlearned_per_presentation[example_id] = np.where(transitions == -1)[0] + 2
+#             else:
+#                 unlearned_per_presentation[example_id] = []
+#             print(
+#                 f"Debug: Example ID {example_id}, Transitions: {transitions}, Unlearned Times: {unlearned_per_presentation[example_id]}")
+#
+#             # Find number of presentations needed to learn example
+#             if len(np.where(presentation_acc == 0)[0]) > 0:
+#                 presentations_needed_to_learn[example_id] = np.where(presentation_acc == 0)[0][-1] + 1
+#             else:
+#                 presentations_needed_to_learn[example_id] = 0
+#
+#             # Find the misclassification margin for each presentation of the example
+#             margins_per_presentation[example_id] = np.array(example_stats[2][:npresentations])
+#
+#             # Find the presentation at which the example was first learned
+#             if len(np.where(presentation_acc == 1)[0]) > 0:
+#                 first_learned[example_id] = np.where(presentation_acc == 1)[0][0]
+#             else:
+#                 first_learned[example_id] = np.nan
+#
+#             # 调试打印
+#             print(f"Example {example_id} stats:")
+#             print(f"  Presentation Accuracy: {presentation_acc}")
+#             print(f"  Transitions: {transitions}")
+#             print(f"  Unlearned Presentations: {unlearned_per_presentation[example_id]}")
+#             print(f"  Presentations Needed to Learn: {presentations_needed_to_learn[example_id]}")
+#             print(f"  First Learned Presentation: {first_learned[example_id]}")
+#     print("Debugging unlearned_per_presentation dictionary:")
+#     for example_id, unlearned_times in list(unlearned_per_presentation.items())[:10]:
+#         print(f"Example ID: {example_id}, Unlearned Times: {unlearned_times}")
+#
+#     return presentations_needed_to_learn, unlearned_per_presentation, margins_per_presentation, first_learned
 
+def compute_forgetting_statistics(diag_stats, npresentations):
     presentations_needed_to_learn = {}
     unlearned_per_presentation = {}
     margins_per_presentation = {}
     first_learned = {}
 
     for example_id, example_stats in diag_stats.items():
+        # Extract accuracies for each presentation
+        presentation_acc = [acc for (_, acc) in example_stats[:npresentations]]
 
-        # Skip 'train' and 'test' keys of diag_stats
-        if not isinstance(example_id, str):
+        # Compute transitions (1 to 0 indicates forgetting)
+        transitions = [presentation_acc[i+1] - presentation_acc[i] for i in range(len(presentation_acc)-1)]
 
-            # Forgetting event is a transition in accuracy from 1 to 0
-            presentation_acc = np.array(example_stats[1][:npresentations])
-            transitions = presentation_acc[1:] - presentation_acc[:-1]
+        # Detect forgetting events
+        forgetting_events = [i+2 for i, t in enumerate(transitions) if t == -1]
+        unlearned_per_presentation[example_id] = forgetting_events
 
-            # Find all presentations when forgetting occurs
-            if len(np.where(transitions == -1)[0]) > 0:
-                unlearned_per_presentation[example_id] = np.where(
-                    transitions == -1)[0] + 2
-            else:
-                unlearned_per_presentation[example_id] = []
+        # Detect learning events
+        learning_events = [i for i, acc in enumerate(presentation_acc) if acc == 1]
+        first_learned[example_id] = learning_events[0] if learning_events else None
 
-            # Find number of presentations needed to learn example, 
-            # e.g. last presentation when acc is 0
-            if len(np.where(presentation_acc == 0)[0]) > 0:
-                presentations_needed_to_learn[example_id] = np.where(
-                    presentation_acc == 0)[0][-1] + 1
-            else:
-                presentations_needed_to_learn[example_id] = 0
-
-            # Find the misclassication margin for each presentation of the example
-            margins_per_presentation = np.array(
-                example_stats[2][:npresentations])
-
-            # Find the presentation at which the example was first learned, 
-            # e.g. first presentation when acc is 1
-            if len(np.where(presentation_acc == 1)[0]) > 0:
-                first_learned[example_id] = np.where(
-                    presentation_acc == 1)[0][0]
-            else:
-                first_learned[example_id] = np.nan
+        # Print debugging information
+        print(f"Example {example_id}:")
+        print(f"  Accuracies: {presentation_acc}")
+        print(f"  Transitions: {transitions}")
+        print(f"  Forgetting Events: {forgetting_events}")
+        print(f"  First Learned at Presentation: {first_learned[example_id]}")
 
     return presentations_needed_to_learn, unlearned_per_presentation, margins_per_presentation, first_learned
 
@@ -67,37 +101,28 @@ def compute_forgetting_statistics(diag_stats, npresentations):
 # first_learned_all: list of dictionaries, one per training run
 # npresentations: number of training epochs
 #
-# Returns 2 numpy arrays containing the sorted example ids and corresponding forgetting counts
-#
-def sort_examples_by_forgetting(unlearned_per_presentation_all,
-                                first_learned_all, npresentations):
-
-    # Initialize lists
+def sort_examples_by_forgetting(unlearned_per_presentation_all, npresentations):
+    print("Number of presentations:", npresentations)
+    #print("Unlearned per presentation:", unlearned_per_presentation_all)
     example_original_order = []
     example_stats = []
 
-    for example_id in unlearned_per_presentation_all[0].keys():
-
-        # Add current example to lists
+    for example_id, stats in unlearned_per_presentation_all.items():
         example_original_order.append(example_id)
-        example_stats.append(0)
+        if len(stats) > 0:
+            example_stats.append(len(stats))
+        else:
+            example_stats.append(0)
 
-        # Iterate over all training runs to calculate the total forgetting count for current example
-        for i in range(len(unlearned_per_presentation_all)):
+    sorted_indices = np.argsort(example_stats)
+    sorted_example_ids = np.array(example_original_order)[sorted_indices]
+    sorted_stats = np.array(example_stats)[sorted_indices]
 
-            # Get all presentations when current example was forgotten during current training run
-            stats = unlearned_per_presentation_all[i][example_id]
+    # for idx, example_id in enumerate(sorted_example_ids):
+    #     if sorted_stats[idx] > 0:
+    #         print(f"Example ID: {example_id}, Forgetting Count: {sorted_stats[idx]}")
 
-            # If example was never learned during current training run, add max forgetting counts
-            if np.isnan(first_learned_all[i][example_id]):
-                example_stats[-1] += npresentations
-            else:
-                example_stats[-1] += len(stats)
-
-    print('Number of unforgettable examples: {}'.format(
-        len(np.where(np.array(example_stats) == 0)[0])))
-    return np.array(example_original_order)[np.argsort(
-        example_stats)], np.sort(example_stats)
+    return sorted_example_ids, sorted_stats
 
 
 # Checks whether a given file name matches a list of specified arguments

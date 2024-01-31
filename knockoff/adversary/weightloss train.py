@@ -127,14 +127,10 @@ def get_all_outputs(model, train_loader, device):
 
 def compute_weights(outputs):
     probabilities = F.softmax(outputs, dim=1)
-    log_probabilities = torch.log(probabilities + 1e-6)  # 防止对0取log
-    entropy = -torch.sum(probabilities * log_probabilities, dim=1)
-
-    # 将熵映射到权重
-    weights = entropy - torch.min(entropy)  # 归一化熵到非负数
-    weights = weights / torch.max(weights)  # 将权重归一化到[0, 1]范围
-
+    confidences, _ = torch.max(probabilities, dim=1)
+    weights = torch.exp(-confidences)  # 使用 e^(-confidence)
     return weights
+
 
 
 
@@ -180,7 +176,7 @@ def train_step(model, train_loader, criterion, optimizer, epoch, device,clip_val
     return train_loss / total, acc
 
 
-def test_step(model, test_loader, criterion, device, epoch=0., silent=False,writer=True):
+def test_step(model, test_loader, criterion, device, epoch=0., silent=False, writer=None):
     model.eval()
     test_loss = 0.
     correct = 0
@@ -198,29 +194,19 @@ def test_step(model, test_loader, criterion, device, epoch=0., silent=False,writ
             _, predicted = outputs.max(1)
             total += targets.size(0)
             if len(targets.size()) == 2:
-                # Labels could be a posterior probability distribution. Use argmax as a proxy.
-                target_probs, target_labels = targets.max(1)
+                target_labels = targets.max(1)[1]
             else:
                 target_labels = targets
-            #correct += predicted.eq(target_labels).sum().item()
-
-            #prog = total / epoch_size
-            #exact_epoch = epoch + prog - 1
-            acc = 100. * correct / total
-            test_loss = test_loss / total
             correct += predicted.eq(target_labels).sum().item()
 
     t_end = time.time()
-    t_epoch = int(t_end - t_start)
-
-    #acc = 100. * correct / total
-    #test_loss /= total
+    acc = 100. * correct / total
+    test_loss /= total
 
     if not silent:
-        print('[Test]  Epoch: {}\tLoss: {:.6f}\tAcc: {:.1f}% ({}/{})'.format(epoch, test_loss, acc,
-                                                                             correct, total))
+        print('[Test]  Epoch: {}\tLoss: {:.6f}\tAcc: {:.1f}% ({}/{})'.format(epoch, test_loss, acc, correct, total))
 
-    if writer is not None:
+    if writer and not isinstance(writer, bool):
         writer.add_scalar('Loss/test', test_loss, epoch)
         writer.add_scalar('Accuracy/test', acc, epoch)
 

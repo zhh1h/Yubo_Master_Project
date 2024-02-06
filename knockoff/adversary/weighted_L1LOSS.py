@@ -10,6 +10,8 @@ import pickle
 from datetime import datetime
 from torch.utils.data import Dataset, DataLoader
 import time
+from torch.nn import L1Loss
+
 
 import numpy as np
 import torch
@@ -42,6 +44,8 @@ __status__ = "Development"
 
 torch.backends.cudnn.enabled = False
 
+print(torch.cuda.is_available())
+print(torch.cuda.device_count())
 
 def get_net(model_name, n_output_classes=1000, **kwargs):
     print('=> loading model {} with arguments: {}'.format(model_name, kwargs))
@@ -105,6 +109,28 @@ def soft_cross_entropy(pred, targets, weights=None):
 
 
 
+def soft_cross_entropy_adjusted(pred, targets, weights=None):
+    stable_softmax_probs = stable_softmax(pred)
+    log_probs = torch.log(stable_softmax_probs + 1e-6)  # 避免log(0)
+
+    if targets.dim() == 2 and targets.shape[1] == pred.shape[1]:
+        soft_targets = targets
+    else:
+        targets = targets.long()
+        soft_targets = F.one_hot(targets, num_classes=pred.size(1)).to(torch.float32)
+
+    # 计算未加权的交叉熵损失
+    loss = -torch.sum(soft_targets * log_probs, dim=1)
+
+    # 如果提供了权重，则调整每个样本的损失
+    if weights is not None:
+        weights = weights.to(loss.device)
+        weighted_loss = loss * weights  # 使用权重调整损失
+    else:
+        weighted_loss = loss
+
+    # 返回加权损失的平均值
+    return torch.mean(weighted_loss)
 
 
 
@@ -125,56 +151,54 @@ def get_all_outputs(model, train_loader, device):
             all_outputs.append(outputs)
     return torch.cat(all_outputs)
 
-
-def compute_weights(outputs):
-    probabilities = F.softmax(outputs, dim=1)
-    confidences, _ = torch.max(probabilities, dim=1)
-    weights = torch.exp(-confidences)  # 使用 e^(-confidence)
-    return weights
-
-
+#
+# def compute_weights(outputs):
+#     probabilities = F.softmax(outputs, dim=1)
+#     confidences, _ = torch.max(probabilities, dim=1)
+#     weights = torch.exp(-confidences)  # 使用 e^(-confidence)
+#     return weights
 
 
 
 
-def train_step(model, train_loader, criterion, optimizer, epoch, device,clip_value=1.0,log_interval=10, writer=None):
+
+
+def train_step(model, train_loader, optimizer, epoch, device, clip_value=1.0, log_interval=10, writer=None, criterion=soft_cross_entropy_adjusted):
     model.train()
     train_loss = 0.
     correct = 0
     total = 0
     epoch_size = len(train_loader.dataset)
     t_start = time.time()
+    model = model.to(device)
 
-    for batch_idx, (inputs, targets) in enumerate(train_loader):
-        inputs, targets = inputs.to(device), targets.to(device)
-        optimizer.zero_grad()
+    for batch_idx, (inputs, targets, weights) in enumerate(train_loader):  # 现在迭代包括权重
+        inputs, targets, weights = inputs.to(device), targets.to(device), weights.to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
         outputs = model(inputs)
 
-        # 使用自定义的权重计算函数
-        batch_weights = compute_weights(outputs)
-        batch_weights = batch_weights.to(device)
-
         # 计算加权损失
-        loss = criterion(outputs, targets, weights=batch_weights)
+        loss = criterion(outputs, targets, weights=weights)  # 假设targets已调整为与outputs兼容
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
+        # weighted_loss = (loss * weights).mean()  # 加权损失并取平均
+        # weighted_loss.backward()
         optimizer.step()
 
         train_loss += loss.item()
-        _, predicted = outputs.max(1)
+        _, predicted = torch.max(outputs, 1)
         total += targets.size(0)
-        if targets.dim() > 1:
-            targets = targets.argmax(dim=1)
-
-        correct += predicted.eq(targets).sum().item()
+        correct += (predicted == targets).sum().item()
 
         if (batch_idx + 1) % log_interval == 0 or batch_idx == 0:
             acc = 100. * correct / total
-            print(f'[Train] Epoch: {epoch:.2f} [{total}/{epoch_size} ({100. * batch_idx / len(train_loader):.0f}%)]\tLoss: {loss.item():.6f}\tAccuracy: {acc:.1f} ({correct}/{total})')
+            print(f'[Train] Epoch: {epoch} [{total}/{epoch_size} ({100. * (batch_idx + 1) / len(train_loader):.0f}%)]\tLoss: {train_loss/(batch_idx+1):.6f}\tAccuracy: {acc:.2f}%')
 
     t_end = time.time()
+    print(f"Training time: {(t_end - t_start):.2f}s")
     acc = 100. * correct / total
     return train_loss / total, acc
+
 
 
 def test_step(model, test_loader, criterion, device, epoch=0., silent=False, writer=None):
@@ -318,49 +342,40 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
     return model
 
 
+from torch.utils.data import Dataset
+from PIL import Image
+import os
 
-
-class TransferSetImagePaths(ImageFolder):
-    """TransferSet Dataset, for when images are stored as *paths*"""
-
-    # IMG_EXTENSIONS = ('.jpg','.jpeg','png','.ppm','.bmp','.pgm,','.tif')
-
-    def __init__(self, samples, transform=None, target_transform=None):
-        self.loader = default_loader
-        self.extensions = IMG_EXTENSIONS
+class TransferSetImagePaths(Dataset):
+    def __init__(self, samples, weights_dict, transform=None, target_transform=None, root_dir=""):
+        # 初始化类的属性
         self.samples = samples
-        self.targets = [s[1] for s in samples]
+        self.weights_dict = weights_dict
         self.transform = transform
         self.target_transform = target_transform
+        self.root_dir = root_dir  # 添加这行来保存根目录路径
 
-    #     self.extensions = IMG_EXTENSIONS
-    #     self.samples = samples
-    #     self.targets = [s[1] for s in samples]
-    #     self.transform = transform
-    #     self.target_transform = target_transform
-    #
     def __getitem__(self, index):
-        # path = self.samples[index][0]
-        # target = self.samples[0][index]
-        directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/stds0.5_caltech0.7_0.5"  # 修改为你的图片目录
-        filename,target = self.samples[index]
-        full_path = os.path.join(directory, filename)
-        #print(os.path.abspath(full_path))
-        #print(f"Attempting to load image at: {path}")  # Debugging line
-        # with open('new_Image_134_23150_truck.png', 'rb') as f:
-        #     print("File can be opened.")
-        #print(os.path.abspath('new_Image_134_23150_truck.png'))
-        # img = self.loader(path)
-        #path = self.imgs[index]
-        img = self.loader(full_path)
-        if self.transform is not None:
-            img = self.transform(img)
-        target = self.targets[index]
-        if self.target_transform is not None:
+        # 获取样本路径、标签和权重
+        path, target = self.samples[index]
+        img_id = os.path.basename(path)
+        weight = self.weights_dict.get(img_id, 0.1)  # 如果未找到权重，默认为1.0
+
+        # 使用root_dir和样本路径拼接完整的文件路径
+        full_path = os.path.join(self.root_dir, path)
+        image = Image.open(full_path).convert('RGB')
+
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
             target = self.target_transform(target)
 
-        return img, target
-    #
+        return image, target, weight
+
+    def __len__(self):
+        return len(self.samples)
+
+
     # def __len__(self):
     #     return len(self.samples)
     #
@@ -398,18 +413,18 @@ class TransferSetImages(Dataset):
         return len(self.data)
 
 
-def samples_to_transferset(samples, budget=None, transform=None, target_transform=None):
-    # Images are either stored as paths, or numpy arrays
-    sample_x = samples[0][0]
-    assert budget <= len(samples), 'Required {} samples > Found {} samples'.format(budget, len(samples))
-
-    if isinstance(sample_x, str):
-        return TransferSetImagePaths(samples[:budget], transform=transform, target_transform=target_transform)
-    elif isinstance(sample_x, np.ndarray):
-        return TransferSetImages(samples[:budget], transform=transform, target_transform=target_transform)
+def samples_to_transferset(samples, weights_dict, budget=None, transform=None, root_dir=""):
+    # 根据samples的类型（路径或numpy数组），返回相应类型的Dataset实例
+    if isinstance(samples[0][0], str):  # 假设路径为字符串
+        # 注意：这里传递了weights_dict和root_dir
+        return TransferSetImagePaths(samples[:budget] if budget is not None else samples, weights_dict, transform=transform,  root_dir=root_dir)
+    elif isinstance(samples[0][0], np.ndarray):
+        # 如果samples是numpy数组，可能需要不同的处理方式
+        # 这里略去，因为您的主要问题是关于路径的处理
+        pass
     else:
-        raise ValueError('type(x_i) ({}) not recognized. Supported types = (str, np.ndarray)'.format(type(
-            sample_x)))  # assert budget <= len(samples), 'Required {} samples > Found {} samples'.format(budget, len(samples))
+        raise ValueError("Unrecognized sample type")
+
 
 
 def get_optimizer(parameters, optimizer_type, lr=0.01, momentum=0.5, **kwargs):
@@ -476,6 +491,9 @@ def main():
     parser.add_argument('--optimizer_choice', type=str, help='Optimizer', default='sgdm',
                         choices=('sgd', 'sgdm', 'adam', 'adagrad'))
     args = parser.parse_args()
+    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/weights_record.json'
+    with open(weights_file_path, 'r') as f:
+        weights_dict = json.load(f)
     params = vars(args)
 
     torch.manual_seed(cfg.DEFAULT_SEED)
@@ -495,7 +513,7 @@ def main():
     # num_classes = transferset_samples[0][1].size(0)
     # print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
-    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_stds0.5_caltech0.7_0.5')
+    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_epsilonExpand20random')
     if osp.exists(transfer_parts_dir):
         transferset_samples = get_transferset_from_parts(transfer_parts_dir)
     else:
@@ -562,7 +580,13 @@ def main():
         torch.manual_seed(cfg.DEFAULT_SEED)
         torch.cuda.manual_seed(cfg.DEFAULT_SEED)
 
-        transferset = samples_to_transferset(transferset_samples, budget=b, transform=transform)
+        # 在main函数中，找到samples_to_transferset的调用
+
+        #transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform)
+        root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpand"  # 您的图像文件根目录
+        transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform,
+                                              root_dir=root_dir)
+
         print()
         print('=> Training at budget = {}'.format(len(transferset)))
 
@@ -570,9 +594,9 @@ def main():
         print(params)
 
         checkpoint_suffix = '.{}'.format(b)
-        criterion_train = soft_cross_entropy
+        criterion_train = soft_cross_entropy  # 使用L1损失代替soft_cross_entropy
         train_model(model, transferset, model_dir, testset=testset, criterion_train=criterion_train,
-                                checkpoint_suffix=checkpoint_suffix, device=device, optimizer=optimizer, **params)
+                    checkpoint_suffix=checkpoint_suffix, device=device, optimizer=optimizer, **params)
 
     # Store arguments
     params['created_on'] = str(datetime.now())
@@ -583,4 +607,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
 

@@ -567,6 +567,7 @@ def main():
         print('=> Training at budget = {}'.format(len(transferset)))
 
         optimizer = get_optimizer(model.parameters(), params['optimizer_choice'], **params)
+        print(f"Optimizer initialized: {type(optimizer)}")
         print(params)
 
         checkpoint_suffix = '.{}'.format(b)

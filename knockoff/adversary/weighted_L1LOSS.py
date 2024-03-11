@@ -88,8 +88,14 @@ def stable_softmax(logits):
     return exps / sum_exps
 
 def soft_cross_entropy(pred, targets, weights=None):
+    pred = pred.float()  # 确保预测值为 Float 类型
+    targets = targets.float()  # 如果targets是one-hot编码，确保为 Float 类型
+    if weights is not None:
+        weights = weights.float()  # 确保权重为 Float 类型
+
+    # 确保以下运算中涉及的所有张量都是 Float 类型
     stable_softmax_probs = stable_softmax(pred)
-    log_probs = torch.log(stable_softmax_probs + 1e-6)  # 加小量避免log(0)
+    log_probs = torch.log(stable_softmax_probs + 1e-6)
 
     if targets.dim() == 2 and targets.shape[1] == pred.shape[1]:
         soft_targets = targets
@@ -109,9 +115,10 @@ def soft_cross_entropy(pred, targets, weights=None):
 
 
 
+
 def soft_cross_entropy_adjusted(pred, targets, weights=None):
     stable_softmax_probs = stable_softmax(pred)
-    log_probs = torch.log(stable_softmax_probs + 1e-6)  # 避免log(0)
+    log_probs = torch.log(stable_softmax_probs + 1e-6)  # avoid log(0)
 
     if targets.dim() == 2 and targets.shape[1] == pred.shape[1]:
         soft_targets = targets
@@ -119,17 +126,18 @@ def soft_cross_entropy_adjusted(pred, targets, weights=None):
         targets = targets.long()
         soft_targets = F.one_hot(targets, num_classes=pred.size(1)).to(torch.float32)
 
-    # 计算未加权的交叉熵损失
+    # Compute unweighted cross-entropy loss
     loss = -torch.sum(soft_targets * log_probs, dim=1)
 
-    # 如果提供了权重，则调整每个样本的损失
+    # If weights are provided, adjusts the loss for each sample
     if weights is not None:
         weights = weights.to(loss.device)
-        weighted_loss = loss * weights  # 使用权重调整损失
+        weighted_loss = loss * weights  # Using weights to adjust losses
     else:
         weighted_loss = loss
+    #print(f"Predictions: {pred}, Targets: {targets}, Weights: {weights}, Loss: {weighted_loss}")
 
-    # 返回加权损失的平均值
+    # Returns the average weighted loss
     return torch.mean(weighted_loss)
 
 
@@ -138,7 +146,7 @@ def soft_cross_entropy_adjusted(pred, targets, weights=None):
 
 # def calculate_weights(outputs):
 #     confidences, _ = torch.max(outputs, dim=1)
-#     weights = 1 - confidences  # 置信度越低，权重越高
+#     weights = 1 - confidences  # The lower the confidence level, the higher the weight
 #     return weights
 
 def get_all_outputs(model, train_loader, device):
@@ -155,7 +163,7 @@ def get_all_outputs(model, train_loader, device):
 # def compute_weights(outputs):
 #     probabilities = F.softmax(outputs, dim=1)
 #     confidences, _ = torch.max(probabilities, dim=1)
-#     weights = torch.exp(-confidences)  # 使用 e^(-confidence)
+#     weights = torch.exp(-confidences)  # use e^(-confidence)
 #     return weights
 
 
@@ -163,32 +171,36 @@ def get_all_outputs(model, train_loader, device):
 
 
 
-def train_step(model, train_loader, optimizer, epoch, device, clip_value=1.0, log_interval=10, writer=None, criterion=soft_cross_entropy_adjusted):
+def train_step(model, train_loader, criterion, opt, epoch, device, log_interval=10):
+    print(f"Inside train_step, opt type: {type(opt)}")
     model.train()
     train_loss = 0.
     correct = 0
     total = 0
     epoch_size = len(train_loader.dataset)
     t_start = time.time()
-    model = model.to(device)
 
-    for batch_idx, (inputs, targets, weights) in enumerate(train_loader):  # 现在迭代包括权重
+    for batch_idx, (inputs, targets, weights) in enumerate(train_loader):
         inputs, targets, weights = inputs.to(device), targets.to(device), weights.to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
+        opt.zero_grad()
         outputs = model(inputs)
-
-        # 计算加权损失
-        loss = criterion(outputs, targets, weights=weights)  # 假设targets已调整为与outputs兼容
+        loss = criterion(outputs, targets, weights=weights)
         loss.backward()
-        # weighted_loss = (loss * weights).mean()  # 加权损失并取平均
-        # weighted_loss.backward()
-        optimizer.step()
+        opt.step()
 
         train_loss += loss.item()
-        _, predicted = torch.max(outputs, 1)
-        total += targets.size(0)
+        # _, predicted = torch.max(outputs.data, 1)
+        # targets = targets.long()
+        # correct += (predicted == targets).sum().item()
+        # total += targets.size(0)
+        _, predicted = torch.max(outputs, 1)  # 从模型输出中获取最可能的类别索引
+        # 如果targets是one-hot编码的，获取类别索引
+        if targets.dim() > 1 and targets.size(1) > 1:
+            targets = targets.max(1)[1]
+
+        # 现在计算准确率
         correct += (predicted == targets).sum().item()
+        total += targets.size(0)
 
         if (batch_idx + 1) % log_interval == 0 or batch_idx == 0:
             acc = 100. * correct / total
@@ -309,7 +321,8 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
     for epoch in range(start_epoch, epochs + 1):
         # outputs = get_all_outputs(model, train_loader, device)
         # weights = calculate_weights(outputs)
-        train_loss, train_acc = train_step(model, train_loader, criterion_train, optimizer, epoch, device,log_interval=log_interval)
+        #train_loss, train_acc = train_step(model, train_loader, criterion_train, optimizer, epoch, device,log_interval=log_interval)
+        train_loss, train_acc = train_step(model=model, train_loader=train_loader, criterion=criterion_train, opt=optimizer, epoch=epoch, device=device, log_interval=log_interval)
 
         # train_loss, train_acc = train_step(model, train_loader, criterion_train, optimizer, epoch, device,
         #                                    log_interval=log_interval)
@@ -354,14 +367,25 @@ class TransferSetImagePaths(Dataset):
         self.transform = transform
         self.target_transform = target_transform
         self.root_dir = root_dir  # 添加这行来保存根目录路径
+        for i, (sample_path, _) in enumerate(self.samples[:5]):
+            print(f"Sample {i} path: {sample_path}")
+        print("First 5 items in weights_dict:", list(weights_dict.items())[:5])
+
+
 
     def __getitem__(self, index):
         # 获取样本路径、标签和权重
         path, target = self.samples[index]
         img_id = os.path.basename(path)
-        weight = self.weights_dict.get(img_id, 0.1)  # 如果未找到权重，默认为1.0
+        # 尝试从weights_dict中获取权重，如果找不到则使用默认权重0.1
+        weight = self.weights_dict.get(img_id, 0)
 
-        # 使用root_dir和样本路径拼接完整的文件路径
+        # 调试信息：打印是否找到权重
+        # if weight == 0.1:
+        #     print(f"Warning: Using default weight for {img_id}.")
+        # else:
+        #     print(f"Info: Found weight {weight} for {img_id}.")
+
         full_path = os.path.join(self.root_dir, path)
         image = Image.open(full_path).convert('RGB')
 
@@ -491,7 +515,7 @@ def main():
     parser.add_argument('--optimizer_choice', type=str, help='Optimizer', default='sgdm',
                         choices=('sgd', 'sgdm', 'adam', 'adagrad'))
     args = parser.parse_args()
-    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/weights_record.json'
+    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/weights20_0.9.json'
     with open(weights_file_path, 'r') as f:
         weights_dict = json.load(f)
     params = vars(args)
@@ -513,7 +537,7 @@ def main():
     # num_classes = transferset_samples[0][1].size(0)
     # print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
-    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_epsilonExpand20random')
+    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_epsilonExpand40random')
     if osp.exists(transfer_parts_dir):
         transferset_samples = get_transferset_from_parts(transfer_parts_dir)
     else:
@@ -583,7 +607,7 @@ def main():
         # 在main函数中，找到samples_to_transferset的调用
 
         #transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform)
-        root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpand"  # 您的图像文件根目录
+        root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBImages"  # 您的图像文件根目录
         transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform,
                                               root_dir=root_dir)
 

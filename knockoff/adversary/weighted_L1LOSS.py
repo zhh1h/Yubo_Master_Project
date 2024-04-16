@@ -351,7 +351,7 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
             af.write('\t'.join([str(c) for c in train_cols]) + '\n')
             # test_cols = [run_id, epoch, 'test', test_loss, test_acc, best_test_acc]
             # af.write('\t'.join([str(c) for c in test_cols]) + '\n')
-
+    print(f"Training complete. Best test accuracy: {best_test_acc}%")  # 训练结束后输出最大测试准确率
     return model
 
 
@@ -515,7 +515,8 @@ def main():
     parser.add_argument('--optimizer_choice', type=str, help='Optimizer', default='sgdm',
                         choices=('sgd', 'sgdm', 'adam', 'adagrad'))
     args = parser.parse_args()
-    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/weights20_0.9.json'
+    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DB/output_weights_DB_Exp2.json'
+    #weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/2560Realepsilon175weights0.6.json'
     with open(weights_file_path, 'r') as f:
         weights_dict = json.load(f)
     params = vars(args)
@@ -537,7 +538,8 @@ def main():
     # num_classes = transferset_samples[0][1].size(0)
     # print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
-    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_epsilonExpand40random')
+    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_DB')
+    #transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_DBplusRealImages')
     if osp.exists(transfer_parts_dir):
         transferset_samples = get_transferset_from_parts(transfer_parts_dir)
     else:
@@ -607,7 +609,8 @@ def main():
         # 在main函数中，找到samples_to_transferset的调用
 
         #transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform)
-        root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBImages"  # 您的图像文件根目录
+        #root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBplusFilterCaltech"  # 您的图像文件根目录
+        root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBImages"
         transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform,
                                               root_dir=root_dir)
 

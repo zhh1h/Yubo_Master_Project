@@ -10,7 +10,7 @@ def count_key_value_pairs(obj):
         return 0
 
 # 加载JSON数据
-with open('/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/weights20_0.9.json', 'r') as file:
+with open('/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/weights45_1.json', 'r') as file:
     data = json.load(file)
 
 #  Calculate the numbers of keys-values pairs

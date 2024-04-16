@@ -432,7 +432,7 @@ def main():
     #     )
     # else:
     #     raise ValueError("Unrecognized policy")
-    final_out_path = osp.join(base_out_path, 'transferset_parts_epsilonExpand40random' if params[
+    final_out_path = osp.join(base_out_path, 'transferset_parts_DB' if params[
                                                                                        'policy'] == 'random' else 'transfer_std_s0.7')
     knockoff_utils.create_dir(final_out_path)
 

@@ -9,7 +9,7 @@ sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradi
 from cifar10vgg19testClassifier import test_classifier, linearize_pixels
 
 # Configure logging
-logging.basicConfig(filename='/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilon20_0.9.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/2560Realepsilon175weight0.6.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.info("Program started.")
 
 def check_path_and_permissions(path):
@@ -72,7 +72,7 @@ def generate_images_and_weights_for_folder(original_images_folder, images_save_p
     if not os.path.exists(weights_save_path):
         os.makedirs(weights_save_path)
 
-    progress_path = os.path.join(weights_save_path, "epsilon20_0.9.txt")
+    progress_path = os.path.join(weights_save_path, "2560Realepsilon175weight0.6.txt")
     completed_images = load_completed_images(progress_path)
     expansion_counts = {}
     weights_A = {}
@@ -96,7 +96,7 @@ def generate_images_and_weights_for_folder(original_images_folder, images_save_p
             update_completed_images(progress_path, filename, completed_images)
 
     # Calculate weights for B
-    total_weight_B = 0.1
+    total_weight_B = 0.4
     number_of_images_B = len(weights_B)
     weight_per_image_B = total_weight_B / number_of_images_B if number_of_images_B else 0
     for image in weights_B:
@@ -106,7 +106,7 @@ def generate_images_and_weights_for_folder(original_images_folder, images_save_p
     weights = {**weights_A, **weights_B}
 
     # Save weights to JSON file
-    weights_json_path = os.path.join(weights_save_path, "weights20_0.9.json")
+    weights_json_path = os.path.join(weights_save_path, "2560Realepsilon175weights0.6.json")
     with open(weights_json_path, "w") as json_file:
         json.dump(weights, json_file)
 
@@ -167,10 +167,10 @@ def generate_images_and_weights_for_folder(original_images_folder, images_save_p
 
 # 这里是调用函数的地方，你需要根据你的实际情况替换路径
 
-original_images_folder = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBImages"
+original_images_folder = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/afterFilterCaltechImages"
 images_save_path = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandOptimization"
 weights_save_path = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights"
-epsilon_range = range(1, 21)  # 示例ε值范围
+epsilon_range = range(1, 176)  # 示例ε值范围
 check_path_and_permissions(images_save_path)
 check_path_and_permissions(weights_save_path)
 

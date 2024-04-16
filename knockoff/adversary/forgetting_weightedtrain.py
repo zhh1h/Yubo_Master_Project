@@ -135,7 +135,34 @@ def compute_weights(outputs):
     return weights
 
 
+def calculate_weights(forgotten_path, never_forgotten_path, output_json_path):
+    # Step 1: Read forgotten counts
+    with open(forgotten_path, 'r') as f:
+        next(f)  # Skip header
+        forgotten_samples = {line.split('\t')[0]: int(line.split('\t')[1]) for line in f}
 
+    # Step 2: Identify never forgotten samples
+    with open(never_forgotten_path, 'r') as f:
+        next(f)  # Skip header
+        never_forgotten_samples = {line.strip(): 0 for line in f}  # Assign 0 forget count
+
+    # Combine both dictionaries
+    all_samples = {**forgotten_samples, **never_forgotten_samples}
+
+    # Step 3: Calculate weights
+    total_forgotten_counts = sum(forgotten_samples.values())
+    num_never_forgotten = len(never_forgotten_samples)
+    weights = {}
+
+    for sample, count in all_samples.items():
+        if count == 0:  # Never forgotten
+            weights[sample] = 0.5 / num_never_forgotten
+        else:  # Forgotten at least once
+            weights[sample] = 0.5 * (count / total_forgotten_counts)
+
+    # Step 4: Save to JSON file
+    with open(output_json_path, 'w') as json_file:
+        json.dump(weights, json_file, indent=4)
 
 
 def train_step(model, train_loader, criterion, optimizer, epoch, device,clip_value=1.0,log_interval=10, writer=None,diag_stats=None):
@@ -347,8 +374,8 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
         sorted_forgetting = sorted(unlearned_per_presentation.items(), key=lambda x: len(x[1]), reverse=True)
 
         # 写入文件
-        with open(os.path.join(out_path, 'forgotten_examples.txt'), 'w') as file_forgotten, \
-                open(os.path.join(out_path, 'never_forgotten_examples.txt'), 'w') as file_never_forgotten:
+        with open(os.path.join(out_path, 'forgotten_examples_DB.txt'), 'w') as file_forgotten, \
+                open(os.path.join(out_path, 'never_forgotten_examples_DB.txt'), 'w') as file_never_forgotten:
             file_forgotten.write("Example ID\tTotal Forgetting Count\n")
             file_never_forgotten.write("Example ID\n")
 
@@ -398,9 +425,7 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
 
     # 在 train_model 函数的循环结束后
 
-
-
-
+    print(f"Training complete. Best test accuracy: {best_test_acc}%")  # 训练结束后输出最大测试准确率
     return model
 
 class TransferSetImagePaths(ImageFolder):
@@ -425,7 +450,10 @@ class TransferSetImagePaths(ImageFolder):
     def __getitem__(self, index):
         # path = self.samples[index][0]
         # target = self.samples[0][index]
-        directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/stds0.5_caltech0.7_0.5"  # 修改为你的图片目录
+        #directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBplusFilterCaltech"
+        #directory ="/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/afterFilterCaltechImages"# 修改为你的图片目录
+        directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBImages"
+
         filename,target = self.samples[index]
         full_path = os.path.join(directory, filename)
         #print(os.path.abspath(full_path))
@@ -580,7 +608,7 @@ def main():
     # num_classes = transferset_samples[0][1].size(0)
     # print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
-    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_stds0.5_caltech0.7_0.5')
+    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_DB')
     if osp.exists(transfer_parts_dir):
         transferset_samples = get_transferset_from_parts(transfer_parts_dir)
     else:
@@ -668,4 +696,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # 计算权重并保存到JSON的逻辑应该放在这里，确保它是在train_model函数执行完之后进行的。
+    #forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusRealRandom/forgotten_examples_DBplusfilterCaltechImages.txt'  # 替换为实际路径
+    forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-2560real/forgotten_examples_DB.txt'
+    never_forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-2560real/never_forgotten_examples_DB.txt'  # 替换为实际路径
+    output_json_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusRealRandom/output_weights_DB.json'  # 指定输出JSON文件的路径
+    # 调用函数计算权重并保存到JSON
+    calculate_weights(forgotten_path, never_forgotten_path, output_json_path)
 

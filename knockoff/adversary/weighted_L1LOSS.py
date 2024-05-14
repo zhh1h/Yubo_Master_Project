@@ -11,10 +11,11 @@ from datetime import datetime
 from torch.utils.data import Dataset, DataLoader
 import time
 from torch.nn import L1Loss
-
+import torch
 
 import numpy as np
-import torch
+import torchvision
+
 from PIL import Image
 from torch.utils.data import Dataset
 import torch.utils.data as data
@@ -515,7 +516,7 @@ def main():
     parser.add_argument('--optimizer_choice', type=str, help='Optimizer', default='sgdm',
                         choices=('sgd', 'sgdm', 'adam', 'adagrad'))
     args = parser.parse_args()
-    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DB/output_weights_DB_Exp2.json'
+    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech/output_weights_DBplusFilterCaltech_Exp2.json'
     #weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/2560Realepsilon175weights0.6.json'
     with open(weights_file_path, 'r') as f:
         weights_dict = json.load(f)
@@ -538,7 +539,7 @@ def main():
     # num_classes = transferset_samples[0][1].size(0)
     # print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
-    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_DB')
+    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_DBplusFilterCaltech')
     #transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_DBplusRealImages')
     if osp.exists(transfer_parts_dir):
         transferset_samples = get_transferset_from_parts(transfer_parts_dir)
@@ -610,7 +611,7 @@ def main():
 
         #transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform)
         #root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBplusFilterCaltech"  # 您的图像文件根目录
-        root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBImages"
+        root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBplusFilterCaltech"
         transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform,
                                               root_dir=root_dir)
 

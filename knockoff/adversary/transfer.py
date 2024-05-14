@@ -241,7 +241,7 @@ class AdaptiveAdversary(object):
         actual_saved = 0
 
         # 定义抽样阈值
-        confidence_threshold = 0.7
+        confidence_threshold = 0.5
         cluster_sample_limit = len(self.queryset) // self.num_clusters
         part_num, actual_saved = self.load_progress(progress_out_path)
         total_saved = actual_saved
@@ -432,8 +432,8 @@ def main():
     #     )
     # else:
     #     raise ValueError("Unrecognized policy")
-    final_out_path = osp.join(base_out_path, 'transferset_parts_DB' if params[
-                                                                                       'policy'] == 'random' else 'transfer_std_s0.7')
+    final_out_path = osp.join(base_out_path, 'transferset_parts_DBplusFilterCaltech' if params[
+                                                                                       'policy'] == 'random' else 'transferset_parts_DBplusFilterCaltechadaptive')
     knockoff_utils.create_dir(final_out_path)
 
     #final_out_path = None
@@ -494,7 +494,7 @@ def main():
     if params['policy'] == 'random':
         total_saved = adversary.get_transferset(params['budget'], final_out_path)
     if params['policy'] == 'adaptive':
-        images_out_dir = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/std_s0.7'
+        images_out_dir = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/adaptiveDBpluscaltech'
         total_saved = adversary.get_transferset(params['budget'], final_out_path, images_out_dir,progress_out_path)
     print('=> total {} samples saved in parts under: {}'.format(total_saved, final_out_path))
 

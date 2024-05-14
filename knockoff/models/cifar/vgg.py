@@ -124,14 +124,21 @@ def vgg16_bn(**kwargs):
     return model
 
 
-def vgg19(**kwargs):
-    """VGG 19-layer model (configuration "E")
+# def vgg19(**kwargs):
+#     """VGG 19-layer model (configuration "E")
+#
+#     Args:
+#         pretrained (bool): If True, returns a model pre-trained on ImageNet
+#     """
+#     model = VGG(make_layers(cfg['E']), **kwargs)
+#     return model
 
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
-    """
+def vgg19(**kwargs):
+    if 'pretrained' in kwargs:  # 检查并移除 'pretrained' 参数
+        del kwargs['pretrained']
     model = VGG(make_layers(cfg['E']), **kwargs)
     return model
+
 
 
 def vgg19_bn(**kwargs):

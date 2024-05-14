@@ -243,9 +243,9 @@ def calculate_weights_normalizationExp(forgotten_path, never_forgotten_path, out
 
 
 # 计算权重并保存到JSON的逻辑应该放在这里，确保它是在train_model函数执行完之后进行的。
-forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DB/forgotten_examples_DB.txt'  # 替换为实际路径
-never_forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DB/never_forgotten_examples_DB.txt'  # 替换为实际路径
-output_json_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DB/output_weights_DB_Exp2.json'  # 指定输出JSON文件的路径
+forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltechadaptive/forgotten_examples_DBplusFilterCaltech.txt'  # 替换为实际路径
+never_forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltechadaptive/never_forgotten_examples_DBplusFilterCaltech.txt'  # 替换为实际路径
+output_json_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltechadaptive/output_weights_DBplusFilterCaltech_Exp2.json'  # 指定输出JSON文件的路径
     # 调用函数计算权重并保存到JSON
 #calculate_weights_log(forgotten_path, never_forgotten_path, output_json_path)
 calculate_weights_gaussian(forgotten_path, never_forgotten_path, output_json_path)

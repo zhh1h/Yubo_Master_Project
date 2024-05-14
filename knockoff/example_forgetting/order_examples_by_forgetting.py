@@ -84,11 +84,11 @@ def compute_forgetting_statistics(diag_stats, npresentations):
         first_learned[example_id] = learning_events[0] if learning_events else None
 
         # Print debugging information
-        print(f"Example {example_id}:")
-        print(f"  Accuracies: {presentation_acc}")
-        print(f"  Transitions: {transitions}")
-        print(f"  Forgetting Events: {forgetting_events}")
-        print(f"  First Learned at Presentation: {first_learned[example_id]}")
+        # print(f"Example {example_id}:")
+        # print(f"  Accuracies: {presentation_acc}")
+        # print(f"  Transitions: {transitions}")
+        # print(f"  Forgetting Events: {forgetting_events}")
+        # print(f"  First Learned at Presentation: {first_learned[example_id]}")
 
     return presentations_needed_to_learn, unlearned_per_presentation, margins_per_presentation, first_learned
 

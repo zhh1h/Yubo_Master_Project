@@ -11,6 +11,9 @@ import os.path as osp
 import torch
 import torch.nn as nn
 import torchvision.models as torch_models
+import sys
+
+sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/adversary")
 import torchvision
 
 import knockoff.models.cifar as cifar_models
@@ -25,7 +28,26 @@ import knockoff.models.mnist as mnist_models
 #     else:
 #         model_class = eval(f'knockoff.models.{modeltype}.{modelname}')
 #         return model_class(**kwargs)
+import requests
+import os
 
+def download_pretrained_model(url, output_path):
+    response = requests.get(url)
+    if response.status_code == 200:
+        with open(output_path, 'wb') as f:
+            f.write(response.content)
+        print(f"Model downloaded successfully and saved to {output_path}")
+    else:
+        raise Exception(f"Failed to download model. Status code: {response.status_code}")
+
+# 下载预训练模型文件
+url = "https://huggingface.co/amehta633/cifar-10-vgg-pretrained/resolve/main/final_model.pth"
+output_path = "final_model.pth"
+
+if not os.path.exists(output_path):
+    download_pretrained_model(url, output_path)
+else:
+    print(f"Model already exists at {output_path}")
 def get_net(modelname, modeltype, pretrained=None, **kwargs):
     assert modeltype in ('mnist', 'cifar', 'imagenet'), "Unsupported model type"
     if pretrained:
@@ -76,33 +98,66 @@ def get_net(modelname, modeltype, pretrained=None, **kwargs):
 #
 #     return model
 
-def get_pretrainednet(modelname, modeltype, pretrained='imagenet', num_classes=10, **kwargs):
-    if pretrained.lower() in ['imagenet', 'cifar']:
+# def get_pretrainednet(modelname, modeltype, pretrained='imagenet', num_classes=10, **kwargs):
+#     if pretrained.lower() in ['imagenet', 'cifar']:
+#         # Load ImageNet pretrained model
+#         model = torch_models.vgg19(pretrained=True, **kwargs)
+#
+#         # Modify the classifier to match the number of classes in CIFAR-10
+#         in_features = model.classifier[-1].in_features
+#         model.classifier[-1] = nn.Linear(in_features, num_classes)
+#     elif osp.exists(pretrained):
+#         # Load model from a provided path
+#         model_class = eval(f'knockoff.models.{modeltype}.{modelname}')
+#         model = model_class(**kwargs)
+#         checkpoint = torch.load(pretrained)
+#         model.load_state_dict(checkpoint['state_dict'])
+#     else:
+#         raise ValueError(f'Pretrained model path or keyword "{pretrained}" does not exist')
+#
+#     if isinstance(model.classifier, nn.Sequential):
+#         last_linear = model.classifier[-1]
+#         if isinstance(last_linear, nn.Linear):
+#             in_features = last_linear.in_features
+#             model.classifier[-1] = nn.Linear(in_features, num_classes)
+#     elif isinstance(model.classifier, nn.Linear):
+#         in_features = model.classifier.in_features
+#         model.classifier = nn.Linear(in_features, num_classes)
+#     else:
+#         raise TypeError("Unexpected type for classifier.")
+#
+#     return model
+
+
+def get_pretrainednet(modelname, modeltype, pretrained='cifar', num_classes=10, **kwargs):
+    if pretrained.lower() == 'imagenet':
         # Load ImageNet pretrained model
         model = torch_models.vgg19(pretrained=True, **kwargs)
+        in_features = model.classifier[-1].in_features
+        model.classifier[-1] = nn.Linear(in_features, num_classes)
+    elif pretrained.lower() == 'cifar':
+        # Load CIFAR-10 pretrained model from Hugging Face
+        model = torch_models.vgg19(pretrained=False, **kwargs)
+        checkpoint_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/adversary/final_model.pth'
 
-        # Modify the classifier to match the number of classes in CIFAR-10
+        if osp.exists(checkpoint_path):
+            try:
+                model.load_state_dict(torch.load(checkpoint_path))
+            except RuntimeError as e:
+                print(f"RuntimeError: {e}, trying torch.jit.load()")
+                model = torch.jit.load(checkpoint_path)
+        else:
+            raise ValueError(f'CIFAR-10 pretrained model path "{checkpoint_path}" does not exist')
+
         in_features = model.classifier[-1].in_features
         model.classifier[-1] = nn.Linear(in_features, num_classes)
     elif osp.exists(pretrained):
-        # Load model from a provided path
         model_class = eval(f'knockoff.models.{modeltype}.{modelname}')
         model = model_class(**kwargs)
         checkpoint = torch.load(pretrained)
         model.load_state_dict(checkpoint['state_dict'])
     else:
         raise ValueError(f'Pretrained model path or keyword "{pretrained}" does not exist')
-
-    if isinstance(model.classifier, nn.Sequential):
-        last_linear = model.classifier[-1]
-        if isinstance(last_linear, nn.Linear):
-            in_features = last_linear.in_features
-            model.classifier[-1] = nn.Linear(in_features, num_classes)
-    elif isinstance(model.classifier, nn.Linear):
-        in_features = model.classifier.in_features
-        model.classifier = nn.Linear(in_features, num_classes)
-    else:
-        raise TypeError("Unexpected type for classifier.")
 
     return model
 

@@ -9,6 +9,7 @@ import os.path as osp
 import pickle
 from datetime import datetime
 from torch.utils.data import Dataset, DataLoader
+import torchvision.models as torch_models
 import time
 from torch.nn import L1Loss
 import torch
@@ -26,7 +27,11 @@ from torchvision.transforms.functional import to_tensor
 
 import sys
 
-#sys.path.append("/home/yubo/yubo_tem_code/knockoffnets")
+sys.path.append("/home/yubo/yubo_tem_code/knockoffnets/knockoff/adversary")
+#sys.path.append(osp.join(osp.dirname(__file__), '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/adversary'))
+sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/adversary")
+sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff/models")
+sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/knockoff")
 
 import knockoff.config as cfg
 import torch.nn as nn
@@ -516,7 +521,7 @@ def main():
     parser.add_argument('--optimizer_choice', type=str, help='Optimizer', default='sgdm',
                         choices=('sgd', 'sgdm', 'adam', 'adagrad'))
     args = parser.parse_args()
-    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech/output_weights_DBplusFilterCaltech_Exp2.json'
+    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-20/output_weights_DBplusFilterCaltech_Exp2.json'
     #weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/2560Realepsilon175weights0.6.json'
     with open(weights_file_path, 'r') as f:
         weights_dict = json.load(f)

@@ -698,9 +698,9 @@ if __name__ == '__main__':
     main()
     # 计算权重并保存到JSON的逻辑应该放在这里，确保它是在train_model函数执行完之后进行的。
     #forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusRealRandom/forgotten_examples_DBplusfilterCaltechImages.txt'  # 替换为实际路径
-    forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-20/forgotten_examples_DBplusFilterCaltech.txt'
-    never_forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-20/never_forgotten_examples_DBplusFilterCaltech.txt'  # 替换为实际路径
-    output_json_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-20/output_weights_DBplusFilterCaltech.json'  # 指定输出JSON文件的路径
+    forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-50/forgotten_examples_DBplusFilterCaltech.txt'
+    never_forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-50/never_forgotten_examples_DBplusFilterCaltech.txt'  # 替换为实际路径
+    output_json_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-50/output_weights_DBplusFilterCaltech.json'  # 指定输出JSON文件的路径
     # 调用函数计算权重并保存到JSON
     calculate_weights(forgotten_path, never_forgotten_path, output_json_path)
 

@@ -44,6 +44,13 @@ __email__ = "orekondy@mpi-inf.mpg.de"
 __status__ = "Development"
 
 torch.backends.cudnn.enabled = False
+import torch
+print("CUDA Available: ", torch.cuda.is_available())
+print("CUDA Device Count: ", torch.cuda.device_count())
+print("Current CUDA Device: ", torch.cuda.current_device())
+print("CUDA Device Name: ", torch.cuda.get_device_name(torch.cuda.current_device()))
+
+
 
 def get_net(model_name, n_output_classes=1000, **kwargs):
     print('=> loading model {} with arguments: {}'.format(model_name, kwargs))
@@ -374,8 +381,8 @@ def train_model(model, trainset, out_path, batch_size=128, criterion_train=None,
         sorted_forgetting = sorted(unlearned_per_presentation.items(), key=lambda x: len(x[1]), reverse=True)
 
         # 写入文件
-        with open(os.path.join(out_path, 'forgotten_examples_DBplusFilterCaltech.txt'), 'w') as file_forgotten, \
-                open(os.path.join(out_path, 'never_forgotten_examples_DBplusFilterCaltech.txt'), 'w') as file_never_forgotten:
+        with open(os.path.join(out_path, 'forgotten_examples_random-interpolation.txt'), 'w') as file_forgotten, \
+                open(os.path.join(out_path, 'never_forgotten_examples_random-interpolation.txt'), 'w') as file_never_forgotten:
             file_forgotten.write("Example ID\tTotal Forgetting Count\n")
             file_never_forgotten.write("Example ID\n")
 
@@ -450,7 +457,7 @@ class TransferSetImagePaths(ImageFolder):
     def __getitem__(self, index):
         # path = self.samples[index][0]
         # target = self.samples[0][index]
-        directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBplusFilterCaltech"
+        directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/all_interpolations_30_100"
         #directory ="/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/afterFilterCaltechImages"# 修改为你的图片目录
         #directory = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/linearinterpolationExpand"
 
@@ -608,7 +615,7 @@ def main():
     # num_classes = transferset_samples[0][1].size(0)
     # print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
-    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_DBplusFilterCaltech')
+    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_all_interpolations_100')
     if osp.exists(transfer_parts_dir):
         transferset_samples = get_transferset_from_parts(transfer_parts_dir)
     else:
@@ -698,9 +705,9 @@ if __name__ == '__main__':
     main()
     # 计算权重并保存到JSON的逻辑应该放在这里，确保它是在train_model函数执行完之后进行的。
     #forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusRealRandom/forgotten_examples_DBplusfilterCaltechImages.txt'  # 替换为实际路径
-    forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-50/forgotten_examples_DBplusFilterCaltech.txt'
-    never_forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-50/never_forgotten_examples_DBplusFilterCaltech.txt'  # 替换为实际路径
-    output_json_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-50/output_weights_DBplusFilterCaltech.json'  # 指定输出JSON文件的路径
+    forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-random-interpolation-30-100/forgotten_examples_random-interpolation.txt'
+    never_forgotten_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-random-interpolation-30-100/never_forgotten_examples_random-interpolation.txt'  # 替换为实际路径
+    output_json_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-random-interpolation-30-100/output_weights_random-interpolation.json'  # 指定输出JSON文件的路径
     # 调用函数计算权重并保存到JSON
     calculate_weights(forgotten_path, never_forgotten_path, output_json_path)
 

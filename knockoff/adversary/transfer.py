@@ -432,7 +432,7 @@ def main():
     #     )
     # else:
     #     raise ValueError("Unrecognized policy")
-    final_out_path = osp.join(base_out_path, 'transferset_parts_DBplusFilterCaltech' if params[
+    final_out_path = osp.join(base_out_path, 'transferset_parts_all_interpolations_100' if params[
                                                                                        'policy'] == 'random' else 'transferset_parts_DBplusFilterCaltechadaptive')
     knockoff_utils.create_dir(final_out_path)
 

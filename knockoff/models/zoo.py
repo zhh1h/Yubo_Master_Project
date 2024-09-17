@@ -5,8 +5,11 @@ import torch.nn as nn
 import knockoff.models.cifar
 import knockoff.models.imagenet
 import knockoff.models.mnist
+import torch.nn.functional as F
 
 
+import urllib.request
+import zipfile
 import os.path as osp
 import torch
 import torch.nn as nn
@@ -186,6 +189,17 @@ def get_net(modelname, modeltype, pretrained=None, **kwargs):
 #         raise ValueError(f'Pretrained model path or keyword "{pretrained}" does not exist')
 #
 #     return model
+
+# def download_and_extract(url, download_path, extract_path):
+#     if not os.path.exists(download_path):
+#         print(f"Downloading {url} to {download_path}")
+#         urllib.request.urlretrieve(url, download_path)
+#
+#     if not os.path.exists(extract_path):
+#         with zipfile.ZipFile(download_path, 'r') as zip_ref:
+#             zip_ref.extractall(extract_path)
+#         print(f"Extracted {download_path} to {extract_path}")
+
 
 def get_pretrainednet(modelname, modeltype, pretrained='cifar', num_classes=10, **kwargs):
     if pretrained.lower() == 'imagenet':

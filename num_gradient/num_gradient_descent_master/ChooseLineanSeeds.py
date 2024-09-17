@@ -10,7 +10,7 @@ import logging
 sys.path.append("/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/Caltech256TrainandPredict")
 from cifar10vgg19testClassifier import test_classifier, linearize_pixels
 
-def find_top_images(directory, output_directory):
+def find_top_images(directory, output_directory, score_threshold=0.7):
     top_images = defaultdict(lambda: [])
 
     # 遍历文件夹中的所有图片
@@ -21,26 +21,22 @@ def find_top_images(directory, output_directory):
                 h, w, img_array = linearize_pixels(img)
                 cls, score = test_classifier(h, w, img_array.flatten(), return_confidence=True)
 
-                # 保存每个类别得分最高的两张图片
-                if len(top_images[cls]) < 2:
+                # 只保留得分超过指定阈值的图片
+                if score > score_threshold:
                     top_images[cls].append((score, filename))
-                    top_images[cls].sort(reverse=True, key=lambda x: x[0])  # 保证最高分在前
-                else:
-                    if score > top_images[cls][1][0]:  # 如果当前得分超过第二高的得分
-                        top_images[cls][1] = (score, filename)
-                        top_images[cls].sort(reverse=True, key=lambda x: x[0])  # 重新排序
 
-    # 保存得分最高的图片到指定文件夹
+    # 移动得分超过阈值的图片到指定文件夹
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
     for cls, images in top_images.items():
-        for _, filename in images:
+        for score, filename in images:
             src_path = os.path.join(directory, filename)
-            dst_path = os.path.join(output_directory, filename)
-            shutil.copy(src_path, dst_path)  # 使用copy方法复制文件
+            # 新文件名，添加分类种类信息
+            new_filename = f'{os.path.splitext(filename)[0]}_class_{cls}{os.path.splitext(filename)[1]}'
+            dst_path = os.path.join(output_directory, new_filename)
+            shutil.move(src_path, dst_path)  # 使用move方法移动文件
 
-    print("图片已成功分类和复制.")
+    print("图片已成功分类和移动.")
 
 # 调用函数
-find_top_images('/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/afterFilterCaltechImages', '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/chooseLineanSeeds')
-
+find_top_images('/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/std_deviation', '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/random_pattern_linear_interpolation_top3')

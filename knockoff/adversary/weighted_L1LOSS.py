@@ -15,7 +15,7 @@ from torch.nn import L1Loss
 import torch
 
 import numpy as np
-import torchvision
+#import torchvision
 
 from PIL import Image
 from torch.utils.data import Dataset
@@ -52,6 +52,11 @@ torch.backends.cudnn.enabled = False
 
 print(torch.cuda.is_available())
 print(torch.cuda.device_count())
+import torch
+
+
+
+
 
 def get_net(model_name, n_output_classes=1000, **kwargs):
     print('=> loading model {} with arguments: {}'.format(model_name, kwargs))
@@ -521,7 +526,7 @@ def main():
     parser.add_argument('--optimizer_choice', type=str, help='Optimizer', default='sgdm',
                         choices=('sgd', 'sgdm', 'adam', 'adagrad'))
     args = parser.parse_args()
-    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-DBplusFilterCaltech-50/output_weights_DBplusFilterCaltech_Exp2.json'
+    weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/models/adversary/cifar10-vgg19-random-interpolation-30-100/output_weights_random-interpolation.json'
     #weights_file_path = '/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/epsilonExpandWeights/2560Realepsilon175weights0.6.json'
     with open(weights_file_path, 'r') as f:
         weights_dict = json.load(f)
@@ -544,7 +549,7 @@ def main():
     # num_classes = transferset_samples[0][1].size(0)
     # print('=> found transfer set with {} samples, {} classes'.format(len(transferset_samples), num_classes))
 
-    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_DBplusFilterCaltech')
+    transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_all_interpolations_100')
     #transfer_parts_dir = osp.join(params['model_dir'], 'transferset_parts_DBplusRealImages')
     if osp.exists(transfer_parts_dir):
         transferset_samples = get_transferset_from_parts(transfer_parts_dir)
@@ -616,7 +621,7 @@ def main():
 
         #transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform)
         #root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBplusFilterCaltech"  # 您的图像文件根目录
-        root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/DBplusFilterCaltech"
+        root_dir = "/home/yubo/PycharmProjects/Yubo_Master_Project_Remote/num_gradient/num_gradient_descent_master/all_interpolations_30_100"
         transferset = samples_to_transferset(transferset_samples, weights_dict, budget=b, transform=transform,
                                               root_dir=root_dir)
 
